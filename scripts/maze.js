@@ -10,13 +10,13 @@ let maze = []
 
 for (let index = 0; index < height * width; index++) {
     let top, right, bottom, left  
-    if (Math.random() == 1) { top = "open"}
+    if (Math.random() < 0.5) { top = "open"}
     else top = "closed"
-    if (Math.random() == 1) { right = "open"}
+    if (Math.random() < 0.5) { right = "open"}
     else right = "closed"
-    if (Math.random() == 1) { bottom = "open"}
+    if (Math.random() < 0.5) { bottom = "open"}
     else bottom = "closed"
-    if (Math.random() == 1) { left = "open"}
+    if (Math.random() < 0.5) { left = "open"}
     else left = "closed"
     maze.push(new MazeGrid(top, right, bottom, left, canvas.width / width, canvas.height / height))
 }
@@ -32,6 +32,12 @@ for (let index = 1; index < maze.length + 1; index++) {
     let X = 0
     let Y = 0
     if (element.top == "open") {
-        
+        X = CoursorPosX
+        Y = CoursorPosY
+        ctx.fillSyle = "#fff"
+        ctx.beginPath();
+        ctx.moveTo(X + element.width, Y);
+        ctx.stroke()
+        console.log("asd")
     }
 }
