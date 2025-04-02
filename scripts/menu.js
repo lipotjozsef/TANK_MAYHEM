@@ -64,8 +64,8 @@ function drawLine(x1, y1, x2, y2) {
 function drawCornerBoxes(offsetX, offsetY, cols, cellSize) {
     const cornerSize = cellSize * 1.5;
 
-    drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', iconSrc);
-    drawRightCornerBox(offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', iconSrc);
+    drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', 'assets/sound.png');
+    drawRightCornerBox(offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', 'assets/pause.png');
 }
 
 function drawRightCornerBox(x, y, size, color, imageSrc) {
