@@ -1,43 +1,33 @@
-import { MazeGrid } from "./mazegrid.js";
+import { MazeGenerator } from "./mazegenerator.js";
 
 const canvas = document.getElementById("canvas")
 const ctx = canvas.getContext("2d")
-const width = 20;
-const height = 20;
-let CoursorPosY = 0
-let CoursorPosX = 0
-let maze = []
 
-for (let index = 0; index < height * width; index++) {
-    let top, right, bottom, left  
-    if (Math.random() < 0.5) { top = "open"}
-    else top = "closed"
-    if (Math.random() < 0.5) { right = "open"}
-    else right = "closed"
-    if (Math.random() < 0.5) { bottom = "open"}
-    else bottom = "closed"
-    if (Math.random() < 0.5) { left = "open"}
-    else left = "closed"
-    maze.push(new MazeGrid(top, right, bottom, left, canvas.width / width, canvas.height / height))
-}
+const mazeGenerator = new MazeGenerator(5, 5, canvas);
+mazeGenerator.initialize();
+mazeGenerator.generateMaze(1, 1);
+mazeGenerator.drawMaze();
 
-for (let index = 1; index < maze.length + 1; index++) {
-    const element = maze[index - 1];
-    ctx.strokeRect(CoursorPosX, CoursorPosY, element.width, element.height)
-    CoursorPosX += element.width
-    if (index % width == 0) {
-        CoursorPosY += element.height
-        CoursorPosX = 0
-    }
-    let X = 0
-    let Y = 0
-    if (element.top == "open") {
-        X = CoursorPosX
-        Y = CoursorPosY
-        ctx.fillSyle = "#fff"
-        ctx.beginPath();
-        ctx.moveTo(X + element.width, Y);
-        ctx.stroke()
-        console.log("asd")
+
+// Collider
+const maze = mazeGenerator.maze
+const cellSize = mazeGenerator.cellSize
+let playerX = 70
+let playerY = 70
+let playerWidth = 10
+ctx.fillStyle = "red"
+ctx.rect(playerX, playerY, playerWidth / 2, playerWidth / 2)
+
+console.log(tryMove())
+
+function tryMove() {
+    let cellPos = [playerX, playerY]
+    for (let i = 0; i  < maze.length; i++) {
+        const mazeRow = maze[i];
+        for (let j = 0; j < mazeRow.length; j++) {
+            if (playerX - j * cellSize < playerWidth / 2) {
+                return false
+            }
+        }
     }
 }
