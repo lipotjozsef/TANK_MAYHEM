@@ -31,7 +31,8 @@ class Vector2 extends Point {
         // b = x axis vector2
         // x (1, 0)
         // cos-1(a1*b1 + a2*b2 / |a| * |b|)
-        return Math.acos((this.x) / this.lenght);
+        if(this.x == 0) return 0;
+        else return parseFloat(Math.tan(this.y / this.x).toFixed(4));
     }
 
     add(adderVec) {
@@ -47,6 +48,10 @@ class Vector2 extends Point {
     normalize() {
         this.x /= this.lenght;
         this.y /= this.lenght;
+    }
+
+    toString() {
+        return `x:${this.x}, y:${this.y}`;
     }
 }
 
@@ -80,8 +85,8 @@ class Player extends Object {
     constructor(spawnX = 0, spawnY = 0, width = 50, height = 50, rotation = 0) {
         super(width, height, spawnX, spawnY, rotation);
         this.rotation = 0;
-        this.velocity.y = 1;
-        this.velocity.x = 1;
+        this.maxspeed = 250;
+        this.ismoving = false;
         this.collider = new Collider();
         this.isdead = false;
         globalPlayers.push(this);
@@ -89,15 +94,27 @@ class Player extends Object {
 
     render() {
         ctx.fillStyle = "#000000";
+        ctx.save();
+        ctx.translate(this.position.x, this.position.y);
         ctx.rotate((this.rotation * Math.PI) / 180);
         ctx.beginPath();
-        ctx.rect(this.position.x - (this.scale.width >> 1), this.position.y - (this.scale.height >> 1), this.scale.width, this.scale.height);
+        //ctx.rect(this.position.x - (this.scale.width >> 1), this.position.y - (this.scale.height >> 1), this.scale.width, this.scale.height);
+        ctx.rect(-this.scale.width/2, -this.scale.height/2, this.scale.width, this.scale.height);
         ctx.fill();
+        ctx.restore();
+        ctx.strokeStyle = "#0000FF";
+        ctx.moveTo(this.position.x, this.position.y);
+        ctx.lineTo(this.position.x+this.velocity.x, this.position.y+ this.velocity.y);
+        ctx.stroke();
+        
+        ctx.strokeStyle = "#000000";
         ctx.fillStyle = "#FF0000";
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, 10, 0, 2*Math.PI);
         ctx.fill();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        
+        
     }
 
     spawn() {
@@ -105,15 +122,46 @@ class Player extends Object {
     }
 
     move() {
-
-        this.position.x += this.velocity.x * deltaTime;
+        let piradRotation = this.rotation * (Math.PI/180)
+        this.velocity.x = this.velocity.x * Math.cos(piradRotation);
+        this.velocity.y = this.velocity.y * Math.sin(piradRotation);
+        console.log("-----------")
+        console.log(this.velocity.toString());
+        console.log(this.rotation);
+        
         this.position.y += this.velocity.y * deltaTime;
+        this.position.x += this.velocity.x * deltaTime;
 
+        if(Math.abs(this.velocity.x) > 0 && !this.ismoving) {
+            this.velocity.x += -1 * (this.velocity.x / Math.abs(this.velocity.x)) * 20;
+            this.velocity.y += -1 * (this.velocity.y / Math.abs(this.velocity.y)) * 20
+        }
     }
 
     handleInput(event) {
         let key = event.key;
+        switch(key){
+            case "w":
+                this.velocity.x = this.maxspeed;
+                this.velocity.y = this.maxspeed;
+                this.ismoving = true;
+                break;
+            case "s":
+                this.velocity.x = -this.maxspeed;
+                this.velocity.y = -this.maxspeed;
+                this.ismoving = true;
+                break;
+            case "a":
+                this.rotation += 15;
+                break;
+            case "d":
+                this.rotation -= 15;
+                break;
+        }
+    }
 
+    notmoving(event) {
+        this.ismoving = false;
     }
 
     die() {
@@ -126,13 +174,14 @@ function start(players) {
 
     for(let i = 0; i < players; i++) {
         let newPlayer = new Player(canvas.width >> 1, canvas.height >> 1);
-        document.addEventListener("keypress", (event) => {newPlayer.handleInput(event);})
+        document.addEventListener("keydown", (event) => {newPlayer.handleInput(event);})
+        document.addEventListener("keyup", (event) => {newPlayer.notmoving(event);})
     }
 }
 
 function mainLoop() {
     deltaTime = (Date.now() - startTime) / 1000;
-    console.log(deltaTime);
+    //console.log(deltaTime);
     startTime = Date.now();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
