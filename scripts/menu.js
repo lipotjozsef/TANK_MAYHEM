@@ -1,86 +1,187 @@
+// Canvas Setup
 const canvas = document.getElementById('game_canvas');
 const ctx = canvas.getContext('2d');
 
 canvas.width = 1080;
 canvas.height = 720;
 
+// Constants
+const gridCellSize = 72;
+const buttonWidth = 200;
+const buttonHeight = 50;
+const buttonText = 'Start';
+const imageSize = 350;
+const logoSrc = 'assets/tankmayhem_logo.png';
+const iconSrc = 'assets/sound.png';
+
+// Initialization
+function init() {
+    drawGrid(gridCellSize);
+    const rows = Math.floor(canvas.height / gridCellSize);
+    const cols = Math.floor(canvas.width / gridCellSize);
+    const offsetX = (canvas.width - cols * gridCellSize) / 2;
+    const offsetY = (canvas.height - rows * gridCellSize) / 2;
+
+    drawCornerBoxes(offsetX, offsetY, cols, gridCellSize);
+    drawCenterImage(logoSrc, imageSize);
+    drawSideButtons(buttonText);
+    drawEndGameOptions();
+}
+
+// Grid Drawing
 function drawGrid(cellSize) {
     const rows = Math.floor(canvas.height / cellSize);
     const cols = Math.floor(canvas.width / cellSize);
-
     const offsetX = (canvas.width - cols * cellSize) / 2;
     const offsetY = (canvas.height - rows * cellSize) / 2;
 
+    drawGridLines(rows, cols, cellSize, offsetX, offsetY);
+}
+
+function drawGridLines(rows, cols, cellSize, offsetX, offsetY) {
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;
 
     for (let i = 0; i <= rows; i++) {
         const y = offsetY + i * cellSize;
-        ctx.beginPath();
-        ctx.moveTo(offsetX, y);
-        ctx.lineTo(offsetX + cols * cellSize, y);
-        ctx.stroke();
+        drawLine(offsetX, y, offsetX + cols * cellSize, y);
     }
 
     for (let j = 0; j <= cols; j++) {
         const x = offsetX + j * cellSize;
-        ctx.beginPath();
-        ctx.moveTo(x, offsetY);
-        ctx.lineTo(x, offsetY + rows * cellSize);
-        ctx.stroke();
-
-        const cornerSize = cellSize * 1.4; 
-        const radius = 50; 
-
-        ctx.fillStyle = 'red';
-        ctx.beginPath();
-        ctx.moveTo(offsetX, offsetY);
-        ctx.lineTo(offsetX + cornerSize, offsetY);
-        ctx.lineTo(offsetX + cornerSize, offsetY + radius);
-        ctx.lineTo(offsetX + cornerSize, offsetY + cornerSize - radius);
-        ctx.quadraticCurveTo(offsetX + cornerSize, offsetY + cornerSize, offsetX + cornerSize - radius, offsetY + cornerSize);
-        ctx.lineTo(offsetX + radius, offsetY + cornerSize);
-        ctx.lineTo(offsetX, offsetY + cornerSize);
-        ctx.lineTo(offsetX, offsetY);
-        ctx.closePath();
-        ctx.fill();
-
-        const img = new Image();
-        img.src = 'assets/tank-favicon.png';
-        img.onload = () => {
-            ctx.drawImage(img, offsetX, offsetY, cornerSize, cornerSize);
-        };
-
-        ctx.fillStyle = 'blue';
-        ctx.beginPath();
-        ctx.moveTo(offsetX + (cols - 1) * cellSize + cellSize, offsetY);
-        ctx.lineTo(offsetX + (cols - 1) * cellSize + cellSize - cornerSize, offsetY);
-        ctx.lineTo(offsetX + (cols - 1) * cellSize + cellSize - cornerSize, offsetY + radius);
-        ctx.lineTo(offsetX + (cols - 1) * cellSize + cellSize - cornerSize, offsetY + cornerSize - radius);
-        ctx.quadraticCurveTo(offsetX + (cols - 1) * cellSize + cellSize - cornerSize, offsetY + cornerSize, offsetX + (cols - 1) * cellSize + cellSize - cornerSize + radius, offsetY + cornerSize);
-        ctx.lineTo(offsetX + (cols - 1) * cellSize + cellSize - radius, offsetY + cornerSize);
-        ctx.lineTo(offsetX + (cols - 1) * cellSize + cellSize, offsetY + cornerSize);
-        ctx.lineTo(offsetX + (cols - 1) * cellSize + cellSize, offsetY);
-        ctx.closePath();
-        ctx.fill();
-
-        const imgBlue = new Image();
-        imgBlue.src = 'assets/tank-favicon.png';
-        imgBlue.onload = () => {
-            ctx.drawImage(imgBlue, offsetX + (cols - 1) * cellSize + cellSize - cornerSize, offsetY, cornerSize, cornerSize);
-        };
-
+        drawLine(x, offsetY, x, offsetY + rows * cellSize);
     }
 }
 
-drawGrid(72);
+function drawLine(x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+}
 
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2;
-const imageSize = 500;
+// Corner Boxes
+function drawCornerBoxes(offsetX, offsetY, cols, cellSize) {
+    const cornerSize = cellSize * 1.5;
 
-const centerImage = new Image();
-centerImage.src = 'assets/tankmayhem_logo.png';
-centerImage.onload = () => {
-    ctx.drawImage(centerImage, centerX - imageSize / 2, centerY - imageSize / 2, imageSize, imageSize);
-};
+    drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', iconSrc);
+    drawRightCornerBox(offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', iconSrc);
+}
+
+function drawRightCornerBox(x, y, size, color, imageSrc) {
+    drawCornerBox(x, y, size, color, imageSrc, true);
+}
+
+function drawLeftCornerBox(x, y, size, color, imageSrc) {
+    drawCornerBox(x, y, size, color, imageSrc, false);
+}
+
+function drawCornerBox(x, y, size, color, imageSrc, isRight) {
+    const radius = 30;
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+
+    if (isRight) {
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - size, y);
+        ctx.lineTo(x - size, y + radius);
+        ctx.lineTo(x - size, y + size - radius);
+        ctx.quadraticCurveTo(x - size, y + size, x - size + radius, y + size);
+        ctx.lineTo(x + radius, y + size);
+        ctx.lineTo(x, y + size);
+    } else {
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + size, y);
+        ctx.lineTo(x + size, y + radius);
+        ctx.lineTo(x + size, y + size - radius);
+        ctx.quadraticCurveTo(x + size, y + size, x + size - radius, y + size);
+        ctx.lineTo(x + radius, y + size);
+        ctx.lineTo(x, y + size);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+
+    const img = new Image();
+    img.src = imageSrc;
+    img.onload = () => {
+        ctx.drawImage(img, isRight ? x - size : x, y, size, size);
+    };
+}
+
+// Center Image
+function drawCenterImage(imageSrc, size) {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 3;
+
+    const img = new Image();
+    img.src = imageSrc;
+    img.onload = () => {
+        ctx.drawImage(img, centerX - size / 2, centerY - size / 2, size, size);
+    };
+}
+
+// Buttons
+function drawSideButtons(text) {
+    const x = (canvas.width - buttonWidth) / 2;
+    const y = (canvas.height - buttonHeight) / 2 + 80;
+
+    drawButton(x, y, buttonWidth, buttonHeight, text);
+
+    const smallButtonWidth = 80;
+    const smallButtonHeight = 40;
+    const spacing = 20;
+
+    const onePlayerX = x - smallButtonWidth - spacing;
+    const twoPlayerX = x + buttonWidth + spacing;
+
+    drawButton(onePlayerX, y, smallButtonWidth, smallButtonHeight, '1P');
+    drawButton(twoPlayerX, y, smallButtonWidth, smallButtonHeight, '2P');
+}
+
+function drawEndGameOptions() {
+    const x = (canvas.width - buttonWidth) / 2;
+    const y = (canvas.height - buttonHeight) / 2 + 160;
+
+    drawButton(x, y, buttonWidth, buttonHeight, 'End Game');
+
+    const arrowWidth = 40;
+    const arrowHeight = 20;
+    const spacing = 20;
+
+    drawArrow(x - arrowWidth - spacing, y + buttonHeight / 2, arrowWidth, arrowHeight, 'left');
+    drawArrow(x + buttonWidth + spacing, y + buttonHeight / 2, arrowWidth, arrowHeight, 'right');
+}
+
+function drawButton(x, y, width, height, text) {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(x, y, width, height);
+
+    ctx.fillStyle = 'white';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + width / 2, y + height / 2);
+}
+
+function drawArrow(x, y, width, height, direction) {
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+
+    if (direction === 'left') {
+        ctx.moveTo(x + width, y - height / 2);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x + width, y + height / 2);
+    } else if (direction === 'right') {
+        ctx.moveTo(x, y - height / 2);
+        ctx.lineTo(x + width, y);
+        ctx.lineTo(x, y + height / 2);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+}
+
+// Start the application
+init();
