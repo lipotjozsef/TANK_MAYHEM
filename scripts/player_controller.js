@@ -64,15 +64,43 @@ class Object {
 }
 
 class Collider extends Object {
-    constructor(parent) {
+    constructor(parent, type) {
         super();
+        this.type = type;
         this.parent = parent;
+        this.iscolliding = false;
         globalObjects.push(this);
     }
 
 
     isColliding(collider) {
-        return true;
+        if(this.type == "rectangle" && collider.type == "rectangle") {
+            if(
+                this.parent.position.x + (this.parent.scale.width) >= collider.parent.position.x &&
+                this.parent.position.x <= collider.parent.position.x + (collider.parent.scale.width) &&
+                this.parent.position.y + (this.parent.scale.height) >= collider.parent.position.y &&
+                this.parent.position.y <= collider.parent.position.y + (collider.parent.scale.height)
+            ) {
+                this.iscolliding = true;
+                return true;
+            }
+            else {
+                this.iscolliding = false;
+                return false;
+            }
+        }
+        else if(this.type == "circle" && collider.type == "rectangle") {
+            let closestPoint = new Vector2(
+                clamp(collider.parent.position.x,collider.parent.position.x + collider.parent.scale.width,this.parent.position.x),
+                clamp(collider.parent.position.y,collider.parent.position.y + collider.parent.scale.height,this.parent.position.y)
+            );
+
+            let distance = parseFloat(Math.sqrt((closestPoint.x - this.parent.position.x)**2 + (closestPoint.y - this.parent.position.y)**2).toFixed(4));
+
+            if(distance <= this.scale.width) return true;
+            else return false;
+        }
+        
     }
 
     move() {
@@ -84,46 +112,46 @@ class Collider extends Object {
         this.rotation = this.parent.rotation;
         this.scale = this.parent.scale;
 
-        ctx.save();
-        ctx.translate(this.position.x, this.position.y); // Position the rect to the center
-        ctx.rotate((this.rotation * Math.PI) / 180);
-        ctx.beginPath();
-        ctx.strokeStyle = "#00FF00";
-        ctx.lineWidth = 3;
-        ctx.rect(-this.scale.width/2, -this.scale.height/2, this.scale.width, this.scale.height);
-        ctx.stroke();
-        ctx.restore();
+        if(this.type == "rectangle") {
+            ctx.save();
+            ctx.translate(this.position.x, this.position.y); // Position the rect to the center
+            ctx.rotate((this.rotation * Math.PI) / 180);
+            ctx.beginPath();
+            if (!this.iscolliding) ctx.strokeStyle = "#00FF00";
+            else ctx.strokeStyle = "#FF0000";
+            ctx.lineWidth = 3;
+            ctx.rect(-this.scale.width/2, -this.scale.height/2, this.scale.width, this.scale.height);
+            ctx.stroke();
+            ctx.restore();
+        }
+        if(this.type == "circle") {
+            ctx.save();
+            ctx.beginPath();
+            if (!this.iscolliding) ctx.strokeStyle = "#00FF00";
+            else ctx.strokeStyle = "#FF0000";
+            ctx.lineWidth = 3;
+            ctx.arc(this.position.x, this.position.y, this.scale.width, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+        
     }
 }
 
 class Bullet extends Object {
     constructor(width, height, positionX, positionY, rotation) {
         super(width, height, positionX, positionY, rotation);
+        this.collider = new Collider(this, "circle");
     }
 
     move() {
         this.position.x += this.velocity.x * deltaTime;
         this.position.y += this.velocity.y * deltaTime;
-
-        if(this.position.y < 0 || this.position.x < 0 || this.position.y > canvas.height || this.position.x > canvas.width) {
-
-            this.rotation *= 2;
-            if(this.rotation == 0) this.rotation = 180;
-            let piradRotation = (this.rotation) * (Math.PI/180);
-            this.rotationMatrix = [
-                parseFloat(Math.cos(piradRotation).toFixed(4)),
-                parseFloat(Math.sin(piradRotation).toFixed(4))
-            ]
-
-            this.velocity.x = 250 * this.rotationMatrix[0];
-            this.velocity.y = 250 * this.rotationMatrix[1];
-
-        }
     }
 
     render() {
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, 10, 0, Math.PI * 2);
+        ctx.arc(this.position.x, this.position.y, this.scale.width, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
@@ -142,6 +170,8 @@ class Bullet extends Object {
 class Player extends Object {
     constructor(spawnX = 0, spawnY = 0, width = 50, height = 50, rotation = 0) {
         super(width, height, spawnX, spawnY, rotation);
+        this.colliding = false;
+        this.lastPosition = new Vector2(0, 0);
         this.rotation = 0;
         this.rotationSpeed = 5;
         this.rotaionDirection = 0;
@@ -150,7 +180,7 @@ class Player extends Object {
         this.drag = 20;
         this.ismoving = false;
         this.rotationMatrix = [1, 0];
-        this.collider = new Collider(this);
+        this.collider = new Collider(this, "rectangle");
         this.isdead = false;
         globalPlayers.push(this);
         this.playerID = globalPlayers.indexOf(this);
@@ -197,6 +227,21 @@ class Player extends Object {
     }
 
     move() {
+        if(!this.colliding) {
+            this.lastPosition.x = this.position.x;
+            this.lastPosition.y = this.position.y;
+        }
+
+        globalPlayers.forEach(player => {
+            if(player != this && this.collider.isColliding(player.collider)) {
+                this.position.x = this.lastPosition.x;
+                this.position.y = this.lastPosition.y;
+                this.colliding = true;
+                return;
+            }
+            else this.colliding = false;
+        })
+
         this.rotation += this.rotaionDirection * this.rotationSpeed;
 
         let Alpha = 0;
@@ -212,12 +257,13 @@ class Player extends Object {
 
         this.position.y += this.velocity.y * deltaTime;
         this.position.x += this.velocity.x * deltaTime;
+        
 
         // DRAG IF NOT PRESSING DOWN ANY BUTTON
         if(!this.ismoving) {
-            if(Math.abs(this.velocity.x) > this.drag) this.velocity.x += -1 * (this.velocity.x / Math.abs(this.velocity.x)) * (this.drag);
+            if(Math.abs(this.velocity.x) > this.drag) this.velocity.x += -1 * this.direction * (this.drag);
             else this.velocity.x = 0;
-            if(Math.abs(this.velocity.y) > this.drag) this.velocity.y += -1 * (this.velocity.y / Math.abs(this.velocity.y)) * (this.drag);
+            if(Math.abs(this.velocity.y) > this.drag) this.velocity.y += -1 * this.direction * (this.drag);
             else this.velocity.y = 0;
         }
 
@@ -260,11 +306,16 @@ class Player extends Object {
     }
 }
 
+function clamp(min, max, value) {
+    return Math.max(min, Math.min(max, value));
+}
+
 function start(players) {
     playerCount = players;
 
     for(let i = 0; i < players; i++) {
-        let newPlayer = new Player(canvas.width >> 1, canvas.height >> 1);
+        let newPlayer = new Player((canvas.width >> 1)+(Math.random() * 200), (canvas.height >> 1)+(Math.random() * 200));
+        console.log(newPlayer.position);
         document.addEventListener("keypress", (event) => {newPlayer.handleInput(event);})
         document.addEventListener("keyup", (event) => {newPlayer.notmoving(event);})
     }
@@ -283,9 +334,11 @@ function mainLoop() {
     })
 
     globalObjects.forEach(el => {
+        
         el.render();
         el.move();
     })
+    
 
     requestAnimationFrame(mainLoop);
 }
