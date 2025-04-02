@@ -224,7 +224,7 @@ class Player extends Object {
     }
 
     handleInput(event) {
-        let key = event.key;
+        let key = event.key.toLowerCase();
         console.log(key);
         if(!this.keybinds.includes(event.key) || event.repeat) return;
         
@@ -247,7 +247,7 @@ class Player extends Object {
 
     notmoving(event) {
         if(!this.keybinds.includes(event.key) || event.repeat) return;
-        let key = event.key;
+        let key = event.key.toLowerCase();
         if(key == this.keybinds[2] && this.rotaionDirection == -1 || key == this.keybinds[3] && this.rotaionDirection == 1) this.rotaionDirection = 0;
         if(key == this.keybinds[0] && this.direction == 1 || key == this.keybinds[1] && this.direction == -1) {
             this.direction = 0;
