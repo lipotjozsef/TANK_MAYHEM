@@ -104,6 +104,21 @@ class Bullet extends Object {
     move() {
         this.position.x += this.velocity.x * deltaTime;
         this.position.y += this.velocity.y * deltaTime;
+
+        if(this.position.y < 0 || this.position.x < 0 || this.position.y > canvas.height || this.position.x > canvas.width) {
+
+            this.rotation *= 2;
+            if(this.rotation == 0) this.rotation = 180;
+            let piradRotation = (this.rotation) * (Math.PI/180);
+            this.rotationMatrix = [
+                parseFloat(Math.cos(piradRotation).toFixed(4)),
+                parseFloat(Math.sin(piradRotation).toFixed(4))
+            ]
+
+            this.velocity.x = 250 * this.rotationMatrix[0];
+            this.velocity.y = 250 * this.rotationMatrix[1];
+
+        }
     }
 
     render() {
@@ -121,11 +136,6 @@ class Bullet extends Object {
         this.velocity = direction;
         console.log(direction);
         globalObjects.push(this);
-
-        setTimeout(() => {
-            this.velocity.x *= -1;
-            this.velocity.y *= -1;
-        }, 2000);
     }
 }
 
@@ -182,7 +192,7 @@ class Player extends Object {
 
     spawnBullet() {
         let newBullet = new Bullet(20, 20, this.position.x+(100*this.rotationMatrix[0]), this.position.y+(100*this.rotationMatrix[1]), 0);
-
+        newBullet.rotation = this.rotation;
         newBullet.spawn(new Vector2(250 * this.rotationMatrix[0], 250 * this.rotationMatrix[1]));
     }
 
