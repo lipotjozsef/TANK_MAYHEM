@@ -1,21 +1,18 @@
-// Canvas Setup
 const canvas = document.getElementById('game_canvas');
 const ctx = canvas.getContext('2d');
 
+// meretek
 canvas.width = 1080;
 canvas.height = 720;
-
-// Constants
 const gridCellSize = 72;
 const buttonWidth = 200;
 const buttonHeight = 50;
 const buttonText = 'Start';
 const imageSize = 350;
 const logoSrc = 'assets/tankmayhem_logo.png';
-const iconSrc = 'assets/sound.png';
 
-// Initialization
-function init() {
+//--------mukodj bazdmeg----------
+function run() {
     drawGrid(gridCellSize);
     const rows = Math.floor(canvas.height / gridCellSize);
     const cols = Math.floor(canvas.width / gridCellSize);
@@ -27,8 +24,10 @@ function init() {
     drawSideButtons(buttonText);
     drawEndGameOptions();
 }
+//------------------
 
-// Grid Drawing
+
+//----------------------------Grid----------------------------//
 function drawGrid(cellSize) {
     const rows = Math.floor(canvas.height / cellSize);
     const cols = Math.floor(canvas.width / cellSize);
@@ -37,7 +36,6 @@ function drawGrid(cellSize) {
 
     drawGridLines(rows, cols, cellSize, offsetX, offsetY);
 }
-
 function drawGridLines(rows, cols, cellSize, offsetX, offsetY) {
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;
@@ -52,20 +50,23 @@ function drawGridLines(rows, cols, cellSize, offsetX, offsetY) {
         drawLine(x, offsetY, x, offsetY + rows * cellSize);
     }
 }
-
 function drawLine(x1, y1, x2, y2) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
 }
+//-------------------------------------------------------------//
 
-// Corner Boxes
+
+//---------------------Bal,jobb sarok (negyzetek)---------------------------//
 function drawCornerBoxes(offsetX, offsetY, cols, cellSize) {
     const cornerSize = cellSize * 1.5;
 
-    drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', iconSrc);
-    drawRightCornerBox(offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', iconSrc);
+    drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', 'assets/sound.png');
+    drawRightCornerBox(offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', 'assets/pause.png');
+
+    addCornerBoxEventListeners(offsetX, offsetY, cols, cellSize, cornerSize);
 }
 
 function drawRightCornerBox(x, y, size, color, imageSrc) {
@@ -76,6 +77,62 @@ function drawLeftCornerBox(x, y, size, color, imageSrc) {
     drawCornerBox(x, y, size, color, imageSrc, false);
 }
 
+function addCornerBoxEventListeners(offsetX, offsetY, cols, cellSize, cornerSize) {
+    const leftBoxArea = {
+        x: offsetX,
+        y: offsetY,
+        size: cornerSize,
+    };
+
+    const rightBoxArea = {
+        x: offsetX + (cols - 1) * cellSize + cellSize - cornerSize,
+        y: offsetY,
+        size: cornerSize,
+    };
+
+    let isLeftBoxToggled = false;
+    let isRightBoxToggled = false;
+
+    canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+
+        if (
+            mouseX >= leftBoxArea.x &&
+            mouseX <= leftBoxArea.x + leftBoxArea.size &&
+            mouseY >= leftBoxArea.y &&
+            mouseY <= leftBoxArea.y + leftBoxArea.size
+        ) {
+            isLeftBoxToggled = !isLeftBoxToggled;
+            drawLeftCornerBox(
+                leftBoxArea.x,
+                leftBoxArea.y,
+                leftBoxArea.size,
+                'red',
+                isLeftBoxToggled ? 'assets/sound_mute.png' : 'assets/sound.png'
+            );
+        }
+
+        if (
+            mouseX >= rightBoxArea.x &&
+            mouseX <= rightBoxArea.x + rightBoxArea.size &&
+            mouseY >= rightBoxArea.y &&
+            mouseY <= rightBoxArea.y + rightBoxArea.size
+        ) {
+            isRightBoxToggled = !isRightBoxToggled;
+            drawRightCornerBox(
+                rightBoxArea.x + cornerSize,
+                rightBoxArea.y,
+                rightBoxArea.size,
+                'blue',
+                isRightBoxToggled ? 'assets/play.png' : 'assets/pause.png'
+            );
+        }
+    });
+}
+
+// ez az ami megrajzolja őket
 function drawCornerBox(x, y, size, color, imageSrc, isRight) {
     const radius = 30;
 
@@ -109,8 +166,10 @@ function drawCornerBox(x, y, size, color, imageSrc, isRight) {
         ctx.drawImage(img, isRight ? x - size : x, y, size, size);
     };
 }
+//-------------------------------------------------------------//
 
-// Center Image
+
+//--------------------------Logo----------------------------------//
 function drawCenterImage(imageSrc, size) {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 3;
@@ -121,39 +180,11 @@ function drawCenterImage(imageSrc, size) {
         ctx.drawImage(img, centerX - size / 2, centerY - size / 2, size, size);
     };
 }
+//------------------------------------------------------------//
 
-// Buttons
-function drawSideButtons(text) {
-    const x = (canvas.width - buttonWidth) / 2;
-    const y = (canvas.height - buttonHeight) / 2 + 80;
 
-    drawButton(x, y, buttonWidth, buttonHeight, text);
-
-    const smallButtonWidth = 80;
-    const smallButtonHeight = 40;
-    const spacing = 20;
-
-    const onePlayerX = x - smallButtonWidth - spacing;
-    const twoPlayerX = x + buttonWidth + spacing;
-
-    drawButton(onePlayerX, y, smallButtonWidth, smallButtonHeight, '1P');
-    drawButton(twoPlayerX, y, smallButtonWidth, smallButtonHeight, '2P');
-}
-
-function drawEndGameOptions() {
-    const x = (canvas.width - buttonWidth) / 2;
-    const y = (canvas.height - buttonHeight) / 2 + 160;
-
-    drawButton(x, y, buttonWidth, buttonHeight, 'End Game');
-
-    const arrowWidth = 40;
-    const arrowHeight = 20;
-    const spacing = 20;
-
-    drawArrow(x - arrowWidth - spacing, y + buttonHeight / 2, arrowWidth, arrowHeight, 'left');
-    drawArrow(x + buttonWidth + spacing, y + buttonHeight / 2, arrowWidth, arrowHeight, 'right');
-}
-
+//-------------------------Also gombok----------------------------// 
+//alap drawing function
 function drawButton(x, y, width, height, text) {
     ctx.fillStyle = 'black';
     ctx.fillRect(x, y, width, height);
@@ -165,6 +196,7 @@ function drawButton(x, y, width, height, text) {
     ctx.fillText(text, x + width / 2, y + height / 2);
 }
 
+//nyilak megrajzolása
 function drawArrow(x, y, width, height, direction) {
     ctx.fillStyle = 'black';
     ctx.beginPath();
@@ -183,5 +215,95 @@ function drawArrow(x, y, width, height, direction) {
     ctx.fill();
 }
 
-// Start the application
-init();
+//1,2. + start gomb
+function drawSideButtons(text) {
+    const x = (canvas.width - buttonWidth) / 2;
+    const y = (canvas.height - buttonHeight) / 2 + 80;
+
+    drawButton(x, y, buttonWidth, buttonHeight, text);
+
+    const smallButtonWidth = 80;
+    const smallButtonHeight = 40;
+    const spacing = 20;
+
+    const onePlayerX = x - smallButtonWidth - spacing;
+    const twoPlayerX = x + buttonWidth + spacing;
+
+    drawButton(onePlayerX, y, smallButtonWidth, smallButtonHeight, '1P');
+    drawButton(twoPlayerX, y, smallButtonWidth, smallButtonHeight, '2P');
+}
+
+//nyilak + end score gomb
+function drawEndGameOptions() {
+    let selectedNumber = 5; // Initial number
+
+    const x = (canvas.width - buttonWidth) / 2;
+    const y = (canvas.height - buttonHeight) / 2 + 160;
+
+    function updateEndGameOptions() {
+
+        drawButton(x, y, buttonWidth, buttonHeight, 'End Score');
+        drawButton(x + 25, y + 60, buttonWidth - 50, buttonHeight, selectedNumber.toString());
+
+        const arrowWidth = 40;
+        const arrowHeight = 20;
+        const spacing = 20;
+
+        drawArrow(x - arrowWidth - spacing + 20, y + buttonHeight / 2 + 60, arrowWidth, arrowHeight, 'left');
+        drawArrow(x + buttonWidth + spacing - 20, y + buttonHeight / 2 + 60, arrowWidth, arrowHeight, 'right');
+    }
+
+    updateEndGameOptions();
+
+    canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+
+        const arrowWidth = 40;
+        const arrowHeight = 20;
+        const spacing = 20;
+
+        const leftArrowArea = {
+            x: x - arrowWidth - spacing + 20,
+            y: y + buttonHeight / 2 + 60 - arrowHeight / 2,
+            width: arrowWidth,
+            height: arrowHeight,
+        };
+
+        const rightArrowArea = {
+            x: x + buttonWidth + spacing - 20,
+            y: y + buttonHeight / 2 + 60 - arrowHeight / 2,
+            width: arrowWidth,
+            height: arrowHeight,
+        };
+
+        if (
+            mouseX >= leftArrowArea.x &&
+            mouseX <= leftArrowArea.x + leftArrowArea.width &&
+            mouseY >= leftArrowArea.y &&
+            mouseY <= leftArrowArea.y + leftArrowArea.height
+        ) {
+            if (selectedNumber > 1) {
+                selectedNumber--;
+                updateEndGameOptions();
+            }
+        }
+
+        if (
+            mouseX >= rightArrowArea.x &&
+            mouseX <= rightArrowArea.x + rightArrowArea.width &&
+            mouseY >= rightArrowArea.y &&
+            mouseY <= rightArrowArea.y + rightArrowArea.height
+        ) {
+            if (selectedNumber < 10) {
+                selectedNumber++;
+                updateEndGameOptions();
+            }
+        }
+    });
+}
+//----------------------------------------------------------------------//
+
+
+run();
