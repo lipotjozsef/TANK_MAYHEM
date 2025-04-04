@@ -10,6 +10,42 @@ export class MazeGenerator {
         this.maze = [];
         this.visited = [];
         this.stack = [];
+        this.freeSpaces = []
+        this.wallSpaces = []
+        this.leftSpawnSpaces = []
+        this.rightSpawnSpaces = []
+    }
+
+    getFreeSpaces(){
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                if (this.maze[y][x] === 0) {
+                    this.freeSpaces.push([x, y])
+                }
+                else{
+                    this.wallSpaces.push([x, y])
+                }
+            }
+        }
+    }
+
+    getSpawnSpaces()
+    {
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 1; x < (this.width / 2) - 1.5 ; x++) {
+                if (this.maze[y][x] === 0) {
+                    this.leftSpawnSpaces.push([x, y])
+                }
+            }
+        } 
+
+        for (let y = 0; y < this.height; y++) {
+            for (let x = (this.width / 2) + 1.5; x < this.width; x++) {
+                if (this.maze[y][x] === 0) {
+                    this.rightSpawnSpaces.push([x, y])
+                }
+            }
+        }
     }
 
     // Initialize the maze and visited arrays
