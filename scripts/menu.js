@@ -320,14 +320,22 @@ function drawSideButtons(text) {
 }
 
 //nyilak + end score gomb
-function drawEndGameOptions() {
-    let selectedNumber = 5; // Initial number
+let selectedNumber = 5; // Declare selectedNumber globally and set the starting number to 5
+let onNumberChange = null; // Callback function for dynamic updates
 
+function setOnNumberChange(callback) {
+    onNumberChange = callback; // Assign the callback function
+}
+
+function getSelectedNumber() {
+    return selectedNumber; // Function to return the current value of selectedNumber
+}
+
+function drawEndGameOptions() {
     const x = (canvas.width - buttonWidth) / 2;
     const y = (canvas.height - buttonHeight) / 2 + 160;
 
     function updateEndGameOptions() {
-
         drawButton(x, y, buttonWidth, buttonHeight, 'End Score');
         drawButton(x + 25, y + 60, buttonWidth - 50, buttonHeight, selectedNumber.toString());
 
@@ -373,6 +381,7 @@ function drawEndGameOptions() {
             if (selectedNumber > 1) {
                 selectedNumber--;
                 updateEndGameOptions();
+                if (onNumberChange) onNumberChange(selectedNumber); // Trigger callback
             }
         }
 
@@ -385,11 +394,15 @@ function drawEndGameOptions() {
             if (selectedNumber < 10) {
                 selectedNumber++;
                 updateEndGameOptions();
+                if (onNumberChange) onNumberChange(selectedNumber); // Trigger callback
             }
         }
     });
 }
-//----------------------------------------------------------------------//
 
+// Example usage of the dynamic callback
+setOnNumberChange((newNumber) => {
+    console.log(`Selected number changed to: ${newNumber}`);
+});
 
 run();
