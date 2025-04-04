@@ -23,6 +23,8 @@ export class PowerUp{
         this.ctx.stroke();
         this.ctx.fillStyle = "yellow"
         this.ctx.fill()
+        this.ctx.fillStyle = "black"
+        this.ctx.fillText(this.type, this.x * this.scale + this.radius - 25 / 4, this.y * this.scale + (this.radius * 1.4), 25)
     }
 
     disspawnPowerUp()
