@@ -20,11 +20,11 @@ function run() {
     const offsetY = (canvas.height - rows * gridCellSize) / 2;
 
     drawCornerBoxes(offsetX, offsetY, cols, gridCellSize);
-    drawCenterImage(logoSrc, imageSize);
+    drawCenterImage(logoSrc, 400, 300); 
     drawSideButtons(buttonText);
     drawEndGameOptions();
 }
-//------------------
+//------------------------//
 
 
 //----------------------------Grid----------------------------//
@@ -61,7 +61,7 @@ function drawLine(x1, y1, x2, y2) {
 
 //---------------------Bal,jobb sarok (negyzetek)---------------------------//
 function drawCornerBoxes(offsetX, offsetY, cols, cellSize) {
-    const cornerSize = cellSize * 1.5;
+    const cornerSize = cellSize * 1.5; // Adjust this value to change the size of the corner boxes
 
     drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', 'assets/volume.png');
     drawRightCornerBox(offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', 'assets/pause.png');
@@ -110,7 +110,7 @@ function addCornerBoxEventListeners(offsetX, offsetY, cols, cellSize, cornerSize
                 leftBoxArea.y,
                 leftBoxArea.size,
                 'red',
-                isLeftBoxToggled ? 'assets/volume-mute.png' : 'assets/volume.png'
+                isLeftBoxToggled ? 'assets/mute.png' : 'assets/volume.png'
             );
         }
 
@@ -126,7 +126,7 @@ function addCornerBoxEventListeners(offsetX, offsetY, cols, cellSize, cornerSize
                 rightBoxArea.y,
                 rightBoxArea.size,
                 'blue',
-                isRightBoxToggled ? 'assets/play.png' : 'assets/pause.png'
+                isRightBoxToggled ? 'assets/play-buttton.png' : 'assets/pause.png'
             );
         }
     });
@@ -163,37 +163,58 @@ function drawCornerBox(x, y, size, color, imageSrc, isRight) {
     const img = new Image();
     img.src = imageSrc;
     img.onload = () => {
-        ctx.drawImage(img, isRight ? x - size : x, y, size, size);
+        const imageScale = 0.8; 
+        const scaledSize = size * imageScale;
+
+   
+        const imageX = isRight ? x - scaledSize / 2 - size / 2 : x + size / 2 - scaledSize / 2;
+        const imageY = y + size / 2 - scaledSize / 2;
+
+        ctx.drawImage(img, imageX, imageY, scaledSize, scaledSize);
     };
 }
 //-------------------------------------------------------------//
 
 
 //--------------------------Logo----------------------------------//
-function drawCenterImage(imageSrc, size) {
+function drawCenterImage(imageSrc, width, height) {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 3;
 
     const img = new Image();
     img.src = imageSrc;
     img.onload = () => {
-        ctx.drawImage(img, centerX - size / 2, centerY - size / 2, size, size);
+        ctx.drawImage(img, centerX - width / 2 - 90, centerY - height / 2 - 10, width + 200,  height);
     };
 }
 //------------------------------------------------------------//
 
 
 //-------------------------Also gombok----------------------------// 
-//alap drawing function
-function drawButton(x, y, width, height, text) {
-    ctx.fillStyle = 'black';
-    ctx.fillRect(x, y, width, height);
+function drawButton(x, y, width, height, text, bgColor = 'black', textColor = 'white', isCircular = false) {
+    ctx.fillStyle = bgColor;
 
-    ctx.fillStyle = 'white';
+    if (isCircular) {
+        
+        const radius = width / 2;
+        ctx.beginPath();
+        ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+    } else {
+        ctx.fillRect(x, y, width, height);
+    }
+
+    ctx.fillStyle = textColor; 
     ctx.font = '20px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(text, x + width / 2, y + height / 2);
+
+    if (isCircular) {
+        ctx.fillText(text, x + width / 2, y + width / 2);
+    } else {
+        ctx.fillText(text, x + width / 2, y + height / 2);
+    }
 }
 
 //nyilak megrajzolása
@@ -215,22 +236,87 @@ function drawArrow(x, y, width, height, direction) {
     ctx.fill();
 }
 
-//1,2. + start gomb
+//Felso gombok (Start, 1P, 2P)
 function drawSideButtons(text) {
-    const x = (canvas.width - buttonWidth) / 2;
-    const y = (canvas.height - buttonHeight) / 2 + 80;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2 + 65; 
 
-    drawButton(x, y, buttonWidth, buttonHeight, text);
+    const startButtonSize = 100; 
+    const wingButtonWidth = 100; 
+    const wingButtonHeight = startButtonSize; 
+    const wingOverlap = -10; 
 
-    const smallButtonWidth = 80;
-    const smallButtonHeight = 40;
-    const spacing = 20;
+    // Draw the green circular border
+    ctx.fillStyle = 'green';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, startButtonSize / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
 
-    const onePlayerX = x - smallButtonWidth - spacing;
-    const twoPlayerX = x + buttonWidth + spacing;
+    const startButtonImage = new Image();
+    startButtonImage.src = 'assets/controller.png'; 
+    startButtonImage.onload = () => {
+        const imageSize = startButtonSize * 0.8; 
+        ctx.drawImage(
+            startButtonImage,
+            centerX - imageSize / 2,
+            centerY - imageSize / 2,
+            imageSize,
+            imageSize
+        );
 
-    drawButton(onePlayerX, y, smallButtonWidth, smallButtonHeight, '1P');
-    drawButton(twoPlayerX, y, smallButtonWidth, smallButtonHeight, '2P');
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.moveTo(centerX - startButtonSize / 2 - wingOverlap, centerY - wingButtonHeight / 2); 
+        ctx.lineTo(centerX - startButtonSize / 2 - wingButtonWidth - wingOverlap, centerY - wingButtonHeight / 2); 
+        ctx.lineTo(centerX - startButtonSize / 2 - wingButtonWidth - wingOverlap, centerY + wingButtonHeight / 2); 
+        ctx.arc(
+            centerX - startButtonSize / 2 - wingOverlap + 40, 
+            centerY, 
+            wingButtonHeight / 2,
+            Math.PI / 2,
+            -Math.PI / 2, 
+            false 
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(
+            '1P',
+            centerX - startButtonSize / 2 - wingButtonWidth / 2, 
+            centerY 
+        );
+
+        ctx.fillStyle = 'blue';
+        ctx.beginPath();
+        ctx.moveTo(centerX + startButtonSize / 2 + wingOverlap, centerY - wingButtonHeight / 2); // Top-left corner of the 2P button
+        ctx.lineTo(centerX + startButtonSize / 2 + wingButtonWidth + wingOverlap, centerY - wingButtonHeight / 2); // Top-right corner
+        ctx.lineTo(centerX + startButtonSize / 2 + wingButtonWidth + wingOverlap, centerY + wingButtonHeight / 2); // Bottom-right corner
+        ctx.arc(
+            centerX + startButtonSize / 2 + wingOverlap - 40, 
+            centerY, 
+            wingButtonHeight / 2, 
+            Math.PI / 2, 
+            -Math.PI / 2, 
+            true 
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(
+            '2P',
+            centerX + startButtonSize / 2 + wingButtonWidth / 2, 
+            centerY 
+        );
+    };
 }
 
 //nyilak + end score gomb
