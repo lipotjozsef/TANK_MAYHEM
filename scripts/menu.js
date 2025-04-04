@@ -63,7 +63,7 @@ function drawLine(x1, y1, x2, y2) {
 function drawCornerBoxes(offsetX, offsetY, cols, cellSize) {
     const cornerSize = cellSize * 1.5;
 
-    drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', 'assets/sound.png');
+    drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', 'assets/volume.png');
     drawRightCornerBox(offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', 'assets/pause.png');
 
     addCornerBoxEventListeners(offsetX, offsetY, cols, cellSize, cornerSize);
@@ -110,7 +110,7 @@ function addCornerBoxEventListeners(offsetX, offsetY, cols, cellSize, cornerSize
                 leftBoxArea.y,
                 leftBoxArea.size,
                 'red',
-                isLeftBoxToggled ? 'assets/sound_mute.png' : 'assets/sound.png'
+                isLeftBoxToggled ? 'assets/volume-mute.png' : 'assets/volume.png'
             );
         }
 
