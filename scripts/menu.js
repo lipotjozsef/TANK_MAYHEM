@@ -16,17 +16,15 @@ lobbyMusic.loop = true;
 lobbyMusic.volume = 0.05; 
 
 function startLobbyMusic() {
-    lobbyMusic.currentTime = 0; // Reset the music to the beginning
+    lobbyMusic.currentTime = 0; 
     lobbyMusic.play().catch((error) => {
         console.error("Failed to play lobby music:", error);
     });
 }
 
-// Start music after user interaction
 canvas.addEventListener('click', function startMusicOnInteraction() {
     startLobbyMusic();
-    canvas.removeEventListener('click', startMusicOnInteraction); // Remove listener after starting music
-});
+    canvas.removeEventListener('click', startMusicOnInteraction); });
 
 function stopLobbyMusic() {
     lobbyMusic.pause();
@@ -141,7 +139,7 @@ function drawCornerBox(x, y, size, color, imageKey, isRight) {
     ctx.closePath();
     ctx.fill();
 
-    const img = images[imageKey]; // Use the preloaded image
+    const img = images[imageKey]; 
     if (img) {
         const imageScale = 0.8;
         const scaledSize = size * imageScale;
@@ -156,63 +154,54 @@ function drawCornerBox(x, y, size, color, imageKey, isRight) {
 
 
 //--------------------------Logo----------------------------------//
-// Preload the logo image
 const logoImage = new Image();
 logoImage.src = logoSrc;
 
-let logoY = canvas.height / 3; // Initial Y position of the logo
-let isLogoAnimating = false; // Flag to prevent multiple animations
+let logoY = canvas.height / 3;
+let isLogoAnimating = false;
 
-// Ensure the logo is drawn only after the image is loaded
 logoImage.onload = () => {
-    run(); // Start the initial rendering after the logo image is loaded
+    run(); 
 };
 
-// Modify the drawCenterImage function to use the preloaded image
 function drawCenterImage(image, width, height) {
     const centerX = canvas.width / 2;
     ctx.drawImage(image, centerX - width / 2 - 90, logoY - height / 2 - 10, width + 200, height);
 }
 
-// Create an offscreen canvas
 const offscreenCanvas = document.createElement('canvas');
 offscreenCanvas.width = canvas.width;
 offscreenCanvas.height = canvas.height;
 const offscreenCtx = offscreenCanvas.getContext('2d');
 
-// Function to animate the logo upwards
 function animateLogoUpwards() {
-    if (isLogoAnimating) return; // Prevent multiple animations
+    if (isLogoAnimating) return; 
     isLogoAnimating = true;
 
     function step() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
 
-        // Redraw everything
         drawGrid(gridCellSize);
         const rows = Math.floor(canvas.height / gridCellSize);
         const cols = Math.floor(canvas.width / gridCellSize);
         const offsetX = (canvas.width - cols * gridCellSize) / 2;
         const offsetY = (canvas.height - rows * gridCellSize) / 2;
 
-        drawCornerBoxes(offsetX, offsetY, cols, gridCellSize); // Redraw corner boxes
-        drawSideButtons(buttonText); // Redraw the green circle and wing boxes
-        drawEndGameOptions(); // Redraw end game options
+        drawCornerBoxes(offsetX, offsetY, cols, gridCellSize); 
+        drawSideButtons(buttonText); 
+        drawEndGameOptions(); 
 
-        // Update and draw the logo at its new position
-        logoY -= 5; // Move the logo upwards
+        logoY -= 5; 
         drawCenterImage(images.logo, 400, 300);
 
-        // Continue the animation if the logo is still visible
         if (logoY + 300 >= 0) {
-            requestAnimationFrame(step); // Schedule the next frame
+            requestAnimationFrame(step); 
         }
     }
 
-    requestAnimationFrame(step); // Start the animation
+    requestAnimationFrame(step); 
 }
 
-// Helper functions to draw to a specific context
 function drawGridToContext(context, cellSize) {
     const rows = Math.floor(canvas.height / cellSize);
     const cols = Math.floor(canvas.width / cellSize);
@@ -295,11 +284,9 @@ function drawCornerBoxToContext(context, x, y, size, color, imageSrc, isRight) {
 }
 
 function drawSideButtonsToContext(context, text) {
-    // Implement similar to drawSideButtons but draw to the provided context
 }
 
 function drawEndGameOptionsToContext(context) {
-    // Implement similar to drawEndGameOptions but draw to the provided context
 }
 
 function drawCenterImageToContext(context, image, width, height) {
@@ -372,7 +359,6 @@ function drawSideButtons(text) {
     ctx.closePath();
     ctx.fill();
 
-    // Draw the controller image from the preloaded images
     const startButtonImage = images.controller; // Use preloaded image
     if (startButtonImage) {
         const imageSize = startButtonSize * 0.8;
@@ -385,7 +371,7 @@ function drawSideButtons(text) {
         );
     }
 
-    // Draw the left wing box (1P)
+    // Draw (1P)
     ctx.fillStyle = 'red';
     ctx.beginPath();
     ctx.moveTo(centerX - startButtonSize / 2 - wingOverlap, centerY - wingButtonHeight / 2);
@@ -412,7 +398,7 @@ function drawSideButtons(text) {
         centerY
     );
 
-    // Store the clickable area for the "1P" button
+    // clickable area for the "1P" button
     onePButtonArea = {
         x: centerX - startButtonSize / 2 - wingButtonWidth - wingOverlap,
         y: centerY - wingButtonHeight / 2,
@@ -420,7 +406,7 @@ function drawSideButtons(text) {
         height: wingButtonHeight,
     };
 
-    // Draw the right wing box (2P)
+    // Draw (2P)
     ctx.fillStyle = 'blue';
     ctx.beginPath();
     ctx.moveTo(centerX + startButtonSize / 2 + wingOverlap, centerY - wingButtonHeight / 2);
@@ -447,7 +433,7 @@ function drawSideButtons(text) {
         centerY
     );
 
-    // Store the clickable area for the "2P" button
+    // clickable area for the "2P" button
     twoPButtonArea = {
         x: centerX + startButtonSize / 2 + wingOverlap,
         y: centerY - wingButtonHeight / 2,
@@ -463,11 +449,9 @@ let twoPButtonArea = {};
 let selectedNumber = 5; 
 let onNumberChange = null; 
 
-// Define arrow areas globally
 let leftArrowArea = {};
 let rightArrowArea = {};
 
-// Define the click handler
 function handleEndGameClick(event) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -512,7 +496,6 @@ function drawEndGameOptions() {
     const x = (canvas.width - buttonWidth) / 2;
     const y = (canvas.height - buttonHeight) / 2 + 160;
 
-    // Draw the buttons and arrows
     drawButton(x, y, buttonWidth, buttonHeight, 'End Score');
     drawButton(x + 25, y + 60, buttonWidth - 50, buttonHeight, selectedNumber.toString());
 
@@ -538,7 +521,6 @@ function drawEndGameOptions() {
     drawArrow(leftArrowArea.x, leftArrowArea.y + arrowHeight / 2, arrowWidth, arrowHeight, 'left');
     drawArrow(rightArrowArea.x, rightArrowArea.y + arrowHeight / 2, arrowWidth, arrowHeight, 'right');
 
-    // Ensure the click event listener is added only once
     canvas.removeEventListener('click', handleEndGameClick); // Remove any existing listener
     canvas.addEventListener('click', handleEndGameClick); // Add the listener
 }
@@ -552,7 +534,6 @@ canvas.addEventListener('click', (event) => {
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
 
-    // Handle "Start Game" button click
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2 + 65;
     const startButtonSize = 100;
@@ -562,11 +543,10 @@ canvas.addEventListener('click', (event) => {
 
     if (distance <= startButtonSize / 2) {
         console.log("Start Game button pressed");
-        animateLogoUpwards(); // Trigger the logo animation
-        return; // Exit early to avoid triggering other buttons
+        animateLogoUpwards(); 
+        return; 
     }
 
-    // Handle "1P" button click
     if (
         mouseX >= onePButtonArea.x &&
         mouseX <= onePButtonArea.x + onePButtonArea.width &&
@@ -574,11 +554,9 @@ canvas.addEventListener('click', (event) => {
         mouseY <= onePButtonArea.y + onePButtonArea.height
     ) {
         console.log("1P button clicked");
-        // Add logic for 1P button click
         return;
     }
 
-    // Handle "2P" button click
     if (
         mouseX >= twoPButtonArea.x &&
         mouseX <= twoPButtonArea.x + twoPButtonArea.width &&
@@ -586,11 +564,9 @@ canvas.addEventListener('click', (event) => {
         mouseY <= twoPButtonArea.y + twoPButtonArea.height
     ) {
         console.log("2P button clicked");
-        // Add logic for 2P button click
         return;
     }
 
-    // Handle "Mute/Volume" button click
     if (
         mouseX >= leftBoxArea.x &&
         mouseX <= leftBoxArea.x + leftBoxArea.size &&
@@ -616,7 +592,6 @@ canvas.addEventListener('click', (event) => {
         return;
     }
 
-    // Handle "Play/Pause" button click
     if (
         mouseX >= rightBoxArea.x &&
         mouseX <= rightBoxArea.x + rightBoxArea.size &&
@@ -665,17 +640,17 @@ const imageSources = {
     volume: 'assets/volume.png',
     mute: 'assets/mute.png',
     pause: 'assets/pause.png',
-    play: 'assets/play-button.png', // Correct key for the Play image
+    play: 'assets/play-button.png',
     controller: 'assets/controller.png',
 };
 
 preloadImages(imageSources, () => {
     console.log('All images loaded');
-    run(); // Start the initial rendering
+    run(); 
 });
 
-let isLeftBoxToggled = false; // Tracks the state of the left box (mute/volume)
-let isRightBoxToggled = false; // Tracks the state of the right box (play/pause)
+let isLeftBoxToggled = false; 
+let isRightBoxToggled = false; 
 
 run(); 
 startLobbyMusic();
