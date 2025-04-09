@@ -361,17 +361,24 @@ class Player extends Object {
     }
 }
 
-class PowerUpCollision extends Object {
-    constructor(width, height, positionX, positionY, rotation) {
+class PowerUpCollision extends Collider {
+    constructor(width, height, positionX, positionY, rotation, powerUp) {
         super(width, height, positionX, positionY, rotation);
         this.collider = new Collider(this, "circle");
         this.colliding = false;
+        this.powerup = powerUp;
+    }
+
+    render() {
+        super.render();
     }
 
     move() {
         globalPlayers.forEach(player => {
             if(this.collider.isColliding(player.collider)) {
                 super.delete();
+                console.log(powerups.indexOf(this.powerup));
+                powerups.splice(powerups.indexOf(this.powerup), 1);
             }
         })
     }
@@ -407,9 +414,10 @@ function start(players) {
         const padding = (mazeGenerator.cellSize - radius * 2) / 2
         let typeNumber = Math.round(POWERUPHELPER.typeList.length * Math.random())
         typeNumber > POWERUPHELPER.typeList.length - 1 ? typeNumber = POWERUPHELPER.typeList.length - 1 : typeNumber = typeNumber
-        powerups.push(new PowerUp(canvas, number[0], number[1], radius, mazeGenerator.cellSize, padding, typeNumber))    
+        let newPOWERUP = new PowerUp(canvas, number[0], number[1], radius, mazeGenerator.cellSize, padding, typeNumber);
+        powerups.push(newPOWERUP)    
         let newPowerUpObject = new Object(radius, radius, number[0]*(mazeGenerator.cellSize) + (mazeGenerator.cellSize/2), number[1]*mazeGenerator.cellSize+ (mazeGenerator.cellSize/2), 0);
-        let newPowerUpCollider = new PowerUpCollision(newPowerUpObject, "circle");
+        let newPowerUpCollider = new PowerUpCollision(newPowerUpObject, "circle", newPOWERUP);
     }
 
     //for(let i = 0; i < mazeGenerator.wallSpaces.length; i++) {
@@ -423,9 +431,9 @@ function start(players) {
     }
 }
 
-let rightSpawn = true;
+let rightSpawn = false;
 function getrandomSpawnPoint() {
-    let spawnList = mazeGenerator.leftSpawnSpaces;
+    let spawnList = mazeGenerator.freeSpaces;
     if(rightSpawn) spawnList = mazeGenerator.rightSpawnSpaces;
     let randomIndex = randomIntMinMax(0, spawnList.length);
     console.log(randomIndex);
