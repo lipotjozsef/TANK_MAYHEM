@@ -178,6 +178,10 @@ function animateLogoUpwards() {
     if (isLogoAnimating) return; 
     isLogoAnimating = true;
 
+    let leftBoxX = leftBoxArea.x;
+    let rightBoxX = rightBoxArea.x + 50; // Adjusted to ensure it's within the canvas
+    const animationSpeed = 5;
+
     function step() {
         ctx.clearRect(0, 0, canvas.width, canvas.height); 
 
@@ -187,14 +191,26 @@ function animateLogoUpwards() {
         const offsetX = (canvas.width - cols * gridCellSize) / 2;
         const offsetY = (canvas.height - rows * gridCellSize) / 2;
 
-        drawCornerBoxes(offsetX, offsetY, cols, gridCellSize); 
         drawSideButtons(buttonText); 
         drawEndGameOptions(); 
 
-        logoY -= 5; 
+        // Animate the logo upwards
+        logoY -= animationSpeed; 
         drawCenterImage(images.logo, 400, 300);
 
-        if (logoY + 300 >= 0) {
+        // Animate the red corner box (left) outwards
+        if (leftBoxX + leftBoxArea.size > 0) {
+            leftBoxX -= animationSpeed; // Move the left box to the left
+            drawLeftCornerBox(leftBoxX, leftBoxArea.y, leftBoxArea.size, 'red', 'volume');
+        }
+
+        if (rightBoxX - rightBoxArea.size < canvas.width) {
+            rightBoxX += animationSpeed; // Move the right box to the right
+            drawRightCornerBox(rightBoxX + 50, rightBoxArea.y, rightBoxArea.size, 'blue', 'pause');
+        }
+
+        // Continue the animation until the logo is off-screen or both boxes are out of view
+        if (logoY + 300 >= 0 || leftBoxX + leftBoxArea.size > 0 || rightBoxX < canvas.width) {
             requestAnimationFrame(step); 
         }
     }
