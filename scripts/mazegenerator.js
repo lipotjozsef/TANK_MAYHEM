@@ -16,6 +16,7 @@ export class MazeGenerator {
         this.wallSpaces = []
         this.leftSpawnSpaces = []
         this.rightSpawnSpaces = []
+        this.wallEmptySpace = this.cellSize - this.wallWidth;
     }
 
     getFreeSpaces(){
@@ -87,13 +88,26 @@ export class MazeGenerator {
         return x >= 0 && y >= 0 && x < this.width && y < this.height;
     }
 
+    isHorizontalEdgeCell(x)
+    {
+        return x == 0 || x == this.width - 1
+    }
+    isVerticalEdgeCell(y)
+    {
+        return y == 0 || y == this.width - 1
+    }
+
     // Draw a single cell (wall or path)
     drawCell(x, y, type) {
         const color = type === 1 ? 'black' : 'white'; // wall or path
         this.ctx.fillStyle = color;
-        const wallEmptySpace = this.cellSize - this.wallWidth;
+
         if (color === "white") {
-            this.ctx.fillRect(x * this.cellSize - wallEmptySpace / 2, y * this.cellSize - wallEmptySpace / 2, this.cellSize + wallEmptySpace, this.cellSize + wallEmptySpace);  
+            this.ctx.fillRect(x * this.cellSize - this.wallEmptySpace / 2, y * this.cellSize - this.wallEmptySpace / 2, this.cellSize + this.wallEmptySpace, this.cellSize + this.wallEmptySpace);  
+        }
+        if(color === "black")
+        {
+            this.ctx.fillRect(x * this.cellSize + this.wallEmptySpace / 2, y * this.cellSize + this.wallEmptySpace /2 , this.cellSize, this.cellSize);  
         }
         
     }
@@ -106,7 +120,6 @@ export class MazeGenerator {
 
     // Generate the maze using DFS
     generateMaze(startX = 1, startY = 1) {
-        this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height)
         this.stack.push([startX, startY]);
         this.visited[startY][startX] = true;
         this.maze[startY][startX] = 0; // Set the start point as a path
@@ -139,11 +152,18 @@ export class MazeGenerator {
 
     // Draw the entire maze on the canvas
     drawMaze() {
+        this.ctx.fillStyle = "black"
+        this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height)
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 this.drawCell(x, y, this.maze[y][x]);
             }
         }
+        this.ctx.fillStyle = "white"
+        this.ctx.fillRect(0,0, this.wallWidth, this.canvas.height)
+        this.ctx.fillRect(this.canvas.width - this.wallWidth, 0, this.wallWidth, this.canvas.height)
+        this.ctx.fillRect(0,0, this.canvas.width, this.wallWidth)
+        this.ctx.fillRect(0, this.canvas.height - this.wallWidth, this.canvas.width, this.wallWidth)
     }
 }
 
