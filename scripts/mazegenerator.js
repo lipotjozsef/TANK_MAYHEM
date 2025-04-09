@@ -5,8 +5,10 @@ export class MazeGenerator {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.cellSize = 50;
+        this.wallWidth = 20
         this.canvas.width = this.width * this.cellSize;
         this.canvas.height = this.height * this.cellSize;
+        this.faceing = 0
         this.maze = [];
         this.visited = [];
         this.stack = [];
@@ -89,7 +91,11 @@ export class MazeGenerator {
     drawCell(x, y, type) {
         const color = type === 1 ? 'black' : 'white'; // wall or path
         this.ctx.fillStyle = color;
-        this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+        const wallEmptySpace = this.cellSize - this.wallWidth;
+        if (color === "white") {
+            this.ctx.fillRect(x * this.cellSize - wallEmptySpace / 2, y * this.cellSize - wallEmptySpace / 2, this.cellSize + wallEmptySpace, this.cellSize + wallEmptySpace);  
+        }
+        
     }
 
     // Carve a path (remove wall between current and new position)
@@ -100,6 +106,7 @@ export class MazeGenerator {
 
     // Generate the maze using DFS
     generateMaze(startX = 1, startY = 1) {
+        this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height)
         this.stack.push([startX, startY]);
         this.visited[startY][startX] = true;
         this.maze[startY][startX] = 0; // Set the start point as a path
