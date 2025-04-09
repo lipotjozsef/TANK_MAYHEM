@@ -465,9 +465,12 @@ function getSelectedNumber() {
     return selectedNumber; 
 }
 
-function drawEndGameOptions() {
+// Add a new variable to track the Y position of the end score menu
+let endScoreMenuY = canvas.height / 2 + 160; // Initial position
+
+function drawEndGameOptions(yPosition = canvas.height / 2 + 160) {
     const x = (canvas.width - buttonWidth) / 2;
-    const y = (canvas.height - buttonHeight) / 2 + 160;
+    const y = yPosition; // Use the passed Y position
 
     drawButton(x, y, buttonWidth, buttonHeight, 'End Score');
     drawButton(x + 25, y + 60, buttonWidth - 50, buttonHeight, selectedNumber.toString());
@@ -676,7 +679,7 @@ function animate() {
         drawRightCornerBox(rightBoxX, rightBoxArea.y, rightBoxArea.size, 'blue', 'pause');
     }
 
-    drawEndGameOptions();
+    drawEndGameOptions(endScoreMenuY); // Pass the updated Y position
 
     // Animate the logo upwards
     if (logoY + 300 >= 0) {
@@ -742,6 +745,11 @@ function animate() {
         ctx.fillText('2P', rightButtonX - wingButtonWidth / 2, centerY);
     }
 
+    // Animate the end score menu downwards
+    if (endScoreMenuY < canvas.height ) { // Stop at a certain position
+        endScoreMenuY += animationSpeed;
+    }
+
     // Redraw the "Start Game" button
     ctx.fillStyle = 'green';
     ctx.beginPath();
@@ -767,7 +775,8 @@ function animate() {
         leftBoxX + leftBoxArea.size <= 0 &&
         rightBoxX - rightBoxArea.size >= canvas.width &&
         leftButtonX <= -wingButtonWidth * 2 &&
-        rightButtonX >= canvas.width + wingButtonWidth * 2
+        rightButtonX >= canvas.width + wingButtonWidth * 2 &&
+        endScoreMenuY >= canvas.height - 100
     ) {
         isAnimating = false; // Stop the animation
 
@@ -786,3 +795,8 @@ function animate() {
 
 run();
 startLobbyMusic();
+
+//TODO:     -start game jobbra-balra wiggle; 
+//          -start game többszöri megnyomás után meghal; 
+//          -rányomásakor megnagyobbodik, átöleli a képernyőt és clearelődik az egész canvas hogy menjen a játék
+//           (miután visszaadta az end score-t és a playerek számát)
