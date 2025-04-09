@@ -8,7 +8,7 @@ const gridCellSize = 72;
 const buttonWidth = 200;
 const buttonHeight = 50;
 const buttonText = 'Start';
-const imageSize = 350;
+const imageSize = 350   ;
 const logoSrc = 'assets/tankmayhem_logo.png';
 
 let lobbyMusic = new Audio('assets/lobby_music.mp3'); 
@@ -216,6 +216,112 @@ function animateLogoUpwards() {
     }
 
     requestAnimationFrame(step); 
+}
+
+function animateSideButtonsOutwards() {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2 + 65;
+
+    const startButtonSize = 100;
+    const wingButtonWidth = 150; // Initial width of the buttons
+    const wingButtonHeight = startButtonSize;
+    const wingOverlap = -10;
+
+    let leftButtonX = centerX - startButtonSize / 2 - wingButtonWidth - wingOverlap + 50; // Start further to the right
+    let rightButtonX = centerX + startButtonSize / 2 + wingOverlap + 100; // Start further to the right
+    const animationSpeed = 5;
+
+    function step() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Redraw the grid and other elements
+        drawGrid(gridCellSize);
+        drawCornerBoxes((canvas.width - Math.floor(canvas.width / gridCellSize) * gridCellSize) / 2, 
+                        (canvas.height - Math.floor(canvas.height / gridCellSize) * gridCellSize) / 2, 
+                        Math.floor(canvas.width / gridCellSize), gridCellSize);
+        drawCenterImage(images.logo, 400, 300);
+        drawEndGameOptions();
+
+        // Draw the "Start Game" button
+        ctx.fillStyle = 'green';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, startButtonSize / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+
+        const startButtonImage = images.controller;
+        if (startButtonImage) {
+            const imageSize = startButtonSize * 0.8;
+            ctx.drawImage(
+                startButtonImage,
+                centerX - imageSize / 2,
+                centerY - imageSize / 2,
+                imageSize,
+                imageSize
+            );
+        }
+
+        // Animate the "1P" button outward
+        if (leftButtonX > -wingButtonWidth * 2) { // Ensure it moves completely off the canvas
+            leftButtonX -= animationSpeed;
+
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.moveTo(centerX - startButtonSize / 2 - wingOverlap, centerY - wingButtonHeight / 2);
+            ctx.lineTo(leftButtonX, centerY - wingButtonHeight / 2);
+            ctx.lineTo(leftButtonX, centerY + wingButtonHeight / 2);
+            ctx.arc(
+                leftButtonX + wingButtonWidth,
+                centerY,
+                wingButtonHeight / 2,
+                Math.PI / 2,
+                -Math.PI / 2,
+                false
+            );
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('1P', leftButtonX + wingButtonWidth / 2, centerY);
+        }
+
+        // Animate the "2P" button outward
+        if (rightButtonX < canvas.width + wingButtonWidth * 2) { // Ensure it moves completely off the canvas
+            rightButtonX += animationSpeed;
+
+            ctx.fillStyle = 'blue';
+            ctx.beginPath();
+            ctx.moveTo(centerX + startButtonSize / 2 + wingOverlap, centerY - wingButtonHeight / 2);
+            ctx.lineTo(rightButtonX, centerY - wingButtonHeight / 2);
+            ctx.lineTo(rightButtonX, centerY + wingButtonHeight / 2);
+            ctx.arc(
+                rightButtonX - wingButtonWidth,
+                centerY,
+                wingButtonHeight / 2,
+                Math.PI / 2,
+                -Math.PI / 2,
+                true
+            );
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('2P', rightButtonX - wingButtonWidth / 2, centerY);
+        }
+
+        // Continue the animation until both buttons are off-screen
+        if (leftButtonX > -wingButtonWidth * 2 || rightButtonX < canvas.width + wingButtonWidth * 2) {
+            requestAnimationFrame(step);
+        }
+    }
+
+    requestAnimationFrame(step);
 }
 
 function drawGridToContext(context, cellSize) {
@@ -559,8 +665,8 @@ canvas.addEventListener('click', (event) => {
 
     if (distance <= startButtonSize / 2) {
         console.log("Start Game button pressed");
-        animateLogoUpwards(); 
-        return; 
+        animateSideButtonsOutwards(); // Trigger the animation
+        return;
     }
 
     if (
