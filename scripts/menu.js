@@ -8,15 +8,15 @@ const gridCellSize = 72;
 const buttonWidth = 200;
 const buttonHeight = 50;
 const buttonText = 'Start';
-const imageSize = 350   ;
+const imageSize = 350;
 const logoSrc = 'assets/tankmayhem_logo.png';
 
-let lobbyMusic = new Audio('assets/lobby_music.mp3'); 
-lobbyMusic.loop = true; 
-lobbyMusic.volume = 0.05; 
+let lobbyMusic = new Audio('assets/lobby_music.mp3');
+lobbyMusic.loop = true;
+lobbyMusic.volume = 0.05;
 
 function startLobbyMusic() {
-    lobbyMusic.currentTime = 0; 
+    lobbyMusic.currentTime = 0;
     lobbyMusic.play().catch((error) => {
         console.error("Failed to play lobby music:", error);
     });
@@ -24,11 +24,12 @@ function startLobbyMusic() {
 
 canvas.addEventListener('click', function startMusicOnInteraction() {
     startLobbyMusic();
-    canvas.removeEventListener('click', startMusicOnInteraction); });
+    canvas.removeEventListener('click', startMusicOnInteraction);
+});
 
 function stopLobbyMusic() {
     lobbyMusic.pause();
-    lobbyMusic.currentTime = 0; 
+    lobbyMusic.currentTime = 0;
 }
 
 //--------mukodj bazdmeg----------
@@ -40,7 +41,7 @@ function run() {
     const offsetY = (canvas.height - rows * gridCellSize) / 2;
 
     drawCornerBoxes(offsetX, offsetY, cols, gridCellSize);
-    drawCenterImage(images.logo, 400, 300); 
+    drawCenterImage(images.logo, 400, 300);
     drawSideButtons(buttonText);
     drawEndGameOptions();
 }
@@ -81,7 +82,7 @@ function drawLine(x1, y1, x2, y2) {
 
 //---------------------Bal,jobb sarok (negyzetek)---------------------------//
 function drawCornerBoxes(offsetX, offsetY, cols, cellSize) {
-    const cornerSize = cellSize * 1.5; 
+    const cornerSize = cellSize * 1.5;
 
     drawLeftCornerBox(offsetX, offsetY, cornerSize, 'red', 'volume');
     drawRightCornerBox(offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', 'pause');
@@ -139,7 +140,7 @@ function drawCornerBox(x, y, size, color, imageKey, isRight) {
     ctx.closePath();
     ctx.fill();
 
-    const img = images[imageKey]; 
+    const img = images[imageKey];
     if (img) {
         const imageScale = 0.8;
         const scaledSize = size * imageScale;
@@ -161,7 +162,7 @@ let logoY = canvas.height / 3;
 let isLogoAnimating = false;
 
 logoImage.onload = () => {
-    run(); 
+    run();
 };
 
 function drawCenterImage(image, width, height) {
@@ -173,156 +174,6 @@ const offscreenCanvas = document.createElement('canvas');
 offscreenCanvas.width = canvas.width;
 offscreenCanvas.height = canvas.height;
 const offscreenCtx = offscreenCanvas.getContext('2d');
-
-function animateLogoUpwards() {
-    if (isLogoAnimating) return; 
-    isLogoAnimating = true;
-
-    let leftBoxX = leftBoxArea.x;
-    let rightBoxX = rightBoxArea.x + 50; // Adjusted to ensure it's within the canvas
-    const animationSpeed = 5;
-
-    function step() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); 
-
-        drawGrid(gridCellSize);
-        const rows = Math.floor(canvas.height / gridCellSize);
-        const cols = Math.floor(canvas.width / gridCellSize);
-        const offsetX = (canvas.width - cols * gridCellSize) / 2;
-        const offsetY = (canvas.height - rows * gridCellSize) / 2;
-
-        drawSideButtons(buttonText); 
-        drawEndGameOptions(); 
-
-        // Animate the logo upwards
-        logoY -= animationSpeed; 
-        drawCenterImage(images.logo, 400, 300);
-
-        // Animate the red corner box (left) outwards
-        if (leftBoxX + leftBoxArea.size > 0) {
-            leftBoxX -= animationSpeed; // Move the left box to the left
-            drawLeftCornerBox(leftBoxX, leftBoxArea.y, leftBoxArea.size, 'red', 'volume');
-        }
-
-        if (rightBoxX - rightBoxArea.size < canvas.width) {
-            rightBoxX += animationSpeed; // Move the right box to the right
-            drawRightCornerBox(rightBoxX + 50, rightBoxArea.y, rightBoxArea.size, 'blue', 'pause');
-        }
-
-        // Continue the animation until the logo is off-screen or both boxes are out of view
-        if (logoY + 300 >= 0 || leftBoxX + leftBoxArea.size > 0 || rightBoxX < canvas.width) {
-            requestAnimationFrame(step); 
-        }
-    }
-
-    requestAnimationFrame(step); 
-}
-
-function animateSideButtonsOutwards() {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2 + 65;
-
-    const startButtonSize = 100;
-    const wingButtonWidth = 150; // Initial width of the buttons
-    const wingButtonHeight = startButtonSize;
-    const wingOverlap = -10;
-
-    let leftButtonX = centerX - startButtonSize / 2 - wingButtonWidth - wingOverlap + 50; // Start further to the right
-    let rightButtonX = centerX + startButtonSize / 2 + wingOverlap + 100; // Start further to the right
-    const animationSpeed = 5;
-
-    function step() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Redraw the grid and other elements
-        drawGrid(gridCellSize);
-        drawCornerBoxes((canvas.width - Math.floor(canvas.width / gridCellSize) * gridCellSize) / 2, 
-                        (canvas.height - Math.floor(canvas.height / gridCellSize) * gridCellSize) / 2, 
-                        Math.floor(canvas.width / gridCellSize), gridCellSize);
-        drawCenterImage(images.logo, 400, 300);
-        drawEndGameOptions();
-
-        // Draw the "Start Game" button
-        ctx.fillStyle = 'green';
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, startButtonSize / 2, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.fill();
-
-        const startButtonImage = images.controller;
-        if (startButtonImage) {
-            const imageSize = startButtonSize * 0.8;
-            ctx.drawImage(
-                startButtonImage,
-                centerX - imageSize / 2,
-                centerY - imageSize / 2,
-                imageSize,
-                imageSize
-            );
-        }
-
-        // Animate the "1P" button outward
-        if (leftButtonX > -wingButtonWidth * 2) { // Ensure it moves completely off the canvas
-            leftButtonX -= animationSpeed;
-
-            ctx.fillStyle = 'red';
-            ctx.beginPath();
-            ctx.moveTo(centerX - startButtonSize / 2 - wingOverlap, centerY - wingButtonHeight / 2);
-            ctx.lineTo(leftButtonX, centerY - wingButtonHeight / 2);
-            ctx.lineTo(leftButtonX, centerY + wingButtonHeight / 2);
-            ctx.arc(
-                leftButtonX + wingButtonWidth,
-                centerY,
-                wingButtonHeight / 2,
-                Math.PI / 2,
-                -Math.PI / 2,
-                false
-            );
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = 'white';
-            ctx.font = '20px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('1P', leftButtonX + wingButtonWidth / 2, centerY);
-        }
-
-        // Animate the "2P" button outward
-        if (rightButtonX < canvas.width + wingButtonWidth * 2) { // Ensure it moves completely off the canvas
-            rightButtonX += animationSpeed;
-
-            ctx.fillStyle = 'blue';
-            ctx.beginPath();
-            ctx.moveTo(centerX + startButtonSize / 2 + wingOverlap, centerY - wingButtonHeight / 2);
-            ctx.lineTo(rightButtonX, centerY - wingButtonHeight / 2);
-            ctx.lineTo(rightButtonX, centerY + wingButtonHeight / 2);
-            ctx.arc(
-                rightButtonX - wingButtonWidth,
-                centerY,
-                wingButtonHeight / 2,
-                Math.PI / 2,
-                -Math.PI / 2,
-                true
-            );
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = 'white';
-            ctx.font = '20px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('2P', rightButtonX - wingButtonWidth / 2, centerY);
-        }
-
-        // Continue the animation until both buttons are off-screen
-        if (leftButtonX > -wingButtonWidth * 2 || rightButtonX < canvas.width + wingButtonWidth * 2) {
-            requestAnimationFrame(step);
-        }
-    }
-
-    requestAnimationFrame(step);
-}
 
 function drawGridToContext(context, cellSize) {
     const rows = Math.floor(canvas.height / cellSize);
@@ -665,11 +516,16 @@ canvas.addEventListener('click', (event) => {
 
     if (distance <= startButtonSize / 2) {
         console.log("Start Game button pressed");
-        animateSideButtonsOutwards(); // Trigger the animation
+
+        // Trigger all animations simultaneously
+        initializeAnimationVariables();
+        isAnimating = true;
+        animate();
         return;
     }
 
     if (
+        onePButtonArea &&
         mouseX >= onePButtonArea.x &&
         mouseX <= onePButtonArea.x + onePButtonArea.width &&
         mouseY >= onePButtonArea.y &&
@@ -680,6 +536,7 @@ canvas.addEventListener('click', (event) => {
     }
 
     if (
+        twoPButtonArea &&
         mouseX >= twoPButtonArea.x &&
         mouseX <= twoPButtonArea.x + twoPButtonArea.width &&
         mouseY >= twoPButtonArea.y &&
@@ -690,6 +547,7 @@ canvas.addEventListener('click', (event) => {
     }
 
     if (
+        leftBoxArea &&
         mouseX >= leftBoxArea.x &&
         mouseX <= leftBoxArea.x + leftBoxArea.size &&
         mouseY >= leftBoxArea.y &&
@@ -715,6 +573,7 @@ canvas.addEventListener('click', (event) => {
     }
 
     if (
+        rightBoxArea &&
         mouseX >= rightBoxArea.x &&
         mouseX <= rightBoxArea.x + rightBoxArea.size &&
         mouseY >= rightBoxArea.y &&
@@ -768,11 +627,162 @@ const imageSources = {
 
 preloadImages(imageSources, () => {
     console.log('All images loaded');
-    run(); 
+    run();
 });
 
-let isLeftBoxToggled = false; 
-let isRightBoxToggled = false; 
+let isLeftBoxToggled = false;
+let isRightBoxToggled = false;
 
-run(); 
+let isAnimating = false; // Flag to prevent multiple animation triggers
+let leftBoxX = 0;
+let rightBoxX = canvas.width;
+let leftButtonX, rightButtonX;
+
+// Initialize animation variables
+function initializeAnimationVariables() {
+    const centerX = canvas.width / 2;
+    const startButtonSize = 100;
+    const wingButtonWidth = 150;
+    const wingOverlap = -10;
+
+    leftButtonX = centerX - startButtonSize / 2 - wingButtonWidth - wingOverlap + 50;
+    rightButtonX = centerX + startButtonSize / 2 + wingOverlap + 100;
+}
+
+// Unified animation function
+function animate() {
+    if (!isAnimating) return;
+
+    const animationSpeed = 5;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Redraw the grid and static elements
+    drawGrid(gridCellSize);
+    const rows = Math.floor(canvas.height / gridCellSize);
+    const cols = Math.floor(canvas.width / gridCellSize);
+    const offsetX = (canvas.width - cols * gridCellSize) / 2;
+    const offsetY = (canvas.height - rows * gridCellSize) / 2;
+
+    // Only draw corner boxes if they are still animating
+    if (leftBoxX + leftBoxArea.size > 0) {
+        leftBoxX -= animationSpeed;
+        drawLeftCornerBox(leftBoxX, leftBoxArea.y, leftBoxArea.size, 'red', 'volume');
+    }
+
+    if (rightBoxX - rightBoxArea.size < canvas.width) {
+        rightBoxX += animationSpeed;
+        drawRightCornerBox(rightBoxX, rightBoxArea.y, rightBoxArea.size, 'blue', 'pause');
+    }
+
+    drawEndGameOptions();
+
+    // Animate the logo upwards
+    if (logoY + 300 >= 0) {
+        logoY -= animationSpeed;
+    }
+    drawCenterImage(images.logo, 400, 300);
+
+    // Animate the side buttons outwards
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2 + 65;
+    const startButtonSize = 100;
+    const wingButtonWidth = 150;
+    const wingButtonHeight = startButtonSize;
+    const wingOverlap = -10;
+
+    if (leftButtonX > -wingButtonWidth * 2) {
+        leftButtonX -= animationSpeed;
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.moveTo(centerX - startButtonSize / 2 - wingOverlap, centerY - wingButtonHeight / 2);
+        ctx.lineTo(leftButtonX, centerY - wingButtonHeight / 2);
+        ctx.lineTo(leftButtonX, centerY + wingButtonHeight / 2);
+        ctx.arc(
+            leftButtonX + wingButtonWidth,
+            centerY,
+            wingButtonHeight / 2,
+            Math.PI / 2,
+            -Math.PI / 2,
+            false
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('1P', leftButtonX + wingButtonWidth / 2, centerY);
+    }
+
+    if (rightButtonX < canvas.width + wingButtonWidth * 2) {
+        rightButtonX += animationSpeed;
+        ctx.fillStyle = 'blue';
+        ctx.beginPath();
+        ctx.moveTo(centerX + startButtonSize / 2 + wingOverlap, centerY - wingButtonHeight / 2);
+        ctx.lineTo(rightButtonX, centerY - wingButtonHeight / 2);
+        ctx.lineTo(rightButtonX, centerY + wingButtonHeight / 2);
+        ctx.arc(
+            rightButtonX - wingButtonWidth,
+            centerY,
+            wingButtonHeight / 2,
+            Math.PI / 2,
+            -Math.PI / 2,
+            true
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('2P', rightButtonX - wingButtonWidth / 2, centerY);
+    }
+
+    // Redraw the "Start Game" button
+    ctx.fillStyle = 'green';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, startButtonSize / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
+
+    const startButtonImage = images.controller; // Use preloaded image
+    if (startButtonImage) {
+        const imageSize = startButtonSize * 0.8;
+        ctx.drawImage(
+            startButtonImage,
+            centerX - imageSize / 2,
+            centerY - imageSize / 2,
+            imageSize,
+            imageSize
+        );
+    }
+
+    // Check if the animation is complete
+    if (
+        logoY + 300 < 0 &&
+        leftBoxX + leftBoxArea.size <= 0 &&
+        rightBoxX - rightBoxArea.size >= canvas.width &&
+        leftButtonX <= -wingButtonWidth * 2 &&
+        rightButtonX >= canvas.width + wingButtonWidth * 2
+    ) {
+        isAnimating = false; // Stop the animation
+
+        // Clear button areas to disable clicks
+        leftBoxArea = null;
+        rightBoxArea = null;
+        onePButtonArea = null;
+        twoPButtonArea = null;
+
+        return;
+    }
+
+    // Continue the animation
+    requestAnimationFrame(animate);
+}
+
+run();
 startLobbyMusic();
