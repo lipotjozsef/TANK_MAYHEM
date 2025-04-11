@@ -3,8 +3,18 @@ const canvas = document.getElementById('game_canvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 1080;
 canvas.height = 720;
-const logoSrc = 'assets/tankmayhem_logo.png';
+const logoSrc = 'assets/tankmayhem_logo2.png';
 let lobbyMusic = new Audio('assets/lobby_music.mp3');
+
+//Képek/assetek forrásai
+const imageSources = {
+    logo: 'assets/tankmayhem_logo2.png',
+    volume: 'assets/volume.png',
+    mute: 'assets/mute.png',
+    pause: 'assets/pause.png',
+    play: 'assets/play-button.png',
+    controller: 'assets/controller.png',
+};
 
 
 
@@ -169,12 +179,12 @@ let logoY = canvas.height / 3;
 let isLogoAnimating = false;
 
 logoImage.onload = () => {
-    run();
+    drawCenterImage(logoImage, 400, 300);
 };
 
 function drawCenterImage(image, width, height) {
     const centerX = canvas.width / 2;
-    ctx.drawImage(image, centerX - width / 2 - 90, logoY - height / 2 - 10, width + 200, height);
+    ctx.drawImage(image, centerX - width / 2 - 100, logoY - height / 2 - 80, width + 200, height + 50);
 }
 
 const offscreenCanvas = document.createElement('canvas');
@@ -542,22 +552,17 @@ function preloadImages(imageSources, callback) {
     }
 }
 
-//Képek/assetek forrásai
-const imageSources = {
-    logo: 'assets/tankmayhem_logo.png',
-    volume: 'assets/volume.png',
-    mute: 'assets/mute.png',
-    pause: 'assets/pause.png',
-    play: 'assets/play-button.png',
-    controller: 'assets/controller.png',
-};
-
 //A function meghívása
 preloadImages(imageSources, () => {
     console.log('All images loaded');
     run();
 });
 
+
+
+
+
+//-------------------------Animáció----------------------------//
 //Animáláshoz szüksgéges változók megadása
 function initializeAnimationVariables() {
     const centerX = canvas.width / 2;
@@ -600,7 +605,6 @@ function animate() {
     }
     drawCenterImage(images.logo, 400, 300);
 
-    // Animate the side buttons outwards
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2 + 65;
     const startButtonSize = 100;
@@ -698,10 +702,11 @@ function animate() {
 
         return;
     }
+    drawCenterImage(images.logo, 400, 300);
 
-    // Continue the animation
     if(!hideMenu)requestAnimationFrame(animate);
 }
+
 
 
 
@@ -716,7 +721,7 @@ function run() {
 
     drawCornerBoxes(offsetX, offsetY, cols, gridCellSize);
     drawCenterImage(images.logo, 400, 300);
-    drawSideButtons(buttonText);
+        drawSideButtons(buttonText);
     drawEndGameOptions();
 }
 
