@@ -1,24 +1,33 @@
 import { start, mainLoop } from "./player_controller.js";
-
 const canvas = document.getElementById('game_canvas');
 const ctx = canvas.getContext('2d');
-
-let hideMenu = false;
-
-let rightBoxArea;
-let leftBoxArea;
-
-// meretek
 canvas.width = 1080;
 canvas.height = 720;
-const gridCellSize = 72;
-const buttonWidth = 200;
-const buttonHeight = 50;
-const buttonText = 'Start';
-const imageSize = 350;
 const logoSrc = 'assets/tankmayhem_logo.png';
-
 let lobbyMusic = new Audio('assets/lobby_music.mp3');
+
+
+
+
+
+//---------------------Változók---------------------//
+let hideMenu = false;
+let playercount = 2; 
+let rightBoxArea;
+let leftBoxArea;
+let isLeftBoxToggled = false;
+let isRightBoxToggled = false;
+let isAnimating = false; 
+let leftBoxX = 0;
+let rightBoxX = canvas.width;
+let leftButtonX, rightButtonX;
+
+
+
+
+
+//---------------------Lobby zene---------------------//
+
 lobbyMusic.loop = true;
 lobbyMusic.volume = 0.05;
 
@@ -34,28 +43,16 @@ canvas.addEventListener('click', function startMusicOnInteraction() {
     canvas.removeEventListener('click', startMusicOnInteraction);
 });
 
-function stopLobbyMusic() {
-    lobbyMusic.pause();
-    lobbyMusic.currentTime = 0;
-}
+// function stopLobbyMusic() {
+//     lobbyMusic.pause();
+//     lobbyMusic.currentTime = 0;
+// }
 
-//--------mukodj bazdmeg----------
-function run() {
-    drawGrid(gridCellSize);
-    const rows = Math.floor(canvas.height / gridCellSize);
-    const cols = Math.floor(canvas.width / gridCellSize);
-    const offsetX = (canvas.width - cols * gridCellSize) / 2;
-    const offsetY = (canvas.height - rows * gridCellSize) / 2;
-
-    drawCornerBoxes(offsetX, offsetY, cols, gridCellSize);
-    drawCenterImage(images.logo, 400, 300);
-    drawSideButtons(buttonText);
-    drawEndGameOptions();
-}
-//------------------------//
 
 
 //----------------------------Grid----------------------------//
+const gridCellSize = 72;
+
 function drawGrid(cellSize) {
     const rows = Math.floor(canvas.height / cellSize);
     const cols = Math.floor(canvas.width / cellSize);
@@ -84,7 +81,9 @@ function drawLine(x1, y1, x2, y2) {
     ctx.lineTo(x2, y2);
     ctx.stroke();
 }
-//-------------------------------------------------------------//
+
+
+
 
 
 //---------------------Bal,jobb sarok (negyzetek)---------------------------//
@@ -119,7 +118,6 @@ function addCornerBoxEventListeners(offsetX, offsetY, cols, cellSize, cornerSize
     };
 }
 
-// ez az ami megrajzolja őket
 function drawCornerBox(x, y, size, color, imageKey, isRight) {
     const radius = 30;
 
@@ -158,7 +156,9 @@ function drawCornerBox(x, y, size, color, imageKey, isRight) {
         ctx.drawImage(img, imageX, imageY, scaledSize, scaledSize);
     }
 }
-//-------------------------------------------------------------//
+
+
+
 
 
 //--------------------------Logo----------------------------------//
@@ -180,103 +180,16 @@ function drawCenterImage(image, width, height) {
 const offscreenCanvas = document.createElement('canvas');
 offscreenCanvas.width = canvas.width;
 offscreenCanvas.height = canvas.height;
-const offscreenCtx = offscreenCanvas.getContext('2d');
-
-function drawGridToContext(context, cellSize) {
-    const rows = Math.floor(canvas.height / cellSize);
-    const cols = Math.floor(canvas.width / cellSize);
-    const offsetX = (canvas.width - cols * cellSize) / 2;
-    const offsetY = (canvas.height - rows * cellSize) / 2;
-
-    context.strokeStyle = 'black';
-    context.lineWidth = 1;
-
-    for (let i = 0; i <= rows; i++) {
-        const y = offsetY + i * cellSize;
-        drawLineToContext(context, offsetX, y, offsetX + cols * cellSize, y);
-    }
-
-    for (let j = 0; j <= cols; j++) {
-        const x = offsetX + j * cellSize;
-        drawLineToContext(context, x, offsetY, x, offsetY + rows * cellSize);
-    }
-}
-
-function drawLineToContext(context, x1, y1, x2, y2) {
-    context.beginPath();
-    context.moveTo(x1, y1);
-    context.lineTo(x2, y2);
-    context.stroke();
-}
-
-function drawCornerBoxesToContext(context, offsetX, offsetY, cols, cellSize) {
-    const cornerSize = cellSize * 1.5;
-
-    drawLeftCornerBoxToContext(context, offsetX, offsetY, cornerSize, 'red', 'volume');
-    drawRightCornerBoxToContext(context, offsetX + (cols - 1) * cellSize + cellSize, offsetY, cornerSize, 'blue', 'pause');
-}
-
-function drawLeftCornerBoxToContext(context, x, y, size, color, imageSrc) {
-    drawCornerBoxToContext(context, x, y, size, color, imageSrc, false);
-}
-
-function drawRightCornerBoxToContext(context, x, y, size, color, imageSrc) {
-    drawCornerBoxToContext(context, x, y, size, color, imageSrc, true);
-}
-
-function drawCornerBoxToContext(context, x, y, size, color, imageSrc, isRight) {
-    const radius = 30;
-
-    context.fillStyle = color;
-    context.beginPath();
-
-    if (isRight) {
-        context.moveTo(x, y);
-        context.lineTo(x - size, y);
-        context.lineTo(x - size, y + radius);
-        context.lineTo(x - size, y + size - radius);
-        context.quadraticCurveTo(x - size, y + size, x - size + radius, y + size);
-        context.lineTo(x + radius, y + size);
-        context.lineTo(x, y + size);
-    } else {
-        context.moveTo(x, y);
-        context.lineTo(x + size, y);
-        context.lineTo(x + size, y + radius);
-        context.lineTo(x + size, y + size - radius);
-        context.quadraticCurveTo(x + size, y + size, x + size - radius, y + size);
-        context.lineTo(x + radius, y + size);
-        context.lineTo(x, y + size);
-    }
-
-    context.closePath();
-    context.fill();
-
-    const img = images[imageSrc];
-    if (img) {
-        const imageScale = 0.8;
-        const scaledSize = size * imageScale;
-
-        const imageX = isRight ? x - scaledSize / 2 - size / 2 : x + size / 2 - scaledSize / 2;
-        const imageY = y + size / 2 - scaledSize / 2;
-
-        context.drawImage(img, imageX, imageY, scaledSize, scaledSize);
-    }
-}
-
-function drawSideButtonsToContext(context, text) {
-}
-
-function drawEndGameOptionsToContext(context) {
-}
-
-function drawCenterImageToContext(context, image, width, height) {
-    const centerX = canvas.width / 2;
-    context.drawImage(image, centerX - width / 2 - 90, logoY - height / 2 - 10, width + 200, height);
-}
-//------------------------------------------------------------//
 
 
-//-------------------------Also gombok----------------------------// 
+
+
+
+//-------------------------End score options----------------------------// 
+
+const buttonWidth = 200;
+const buttonHeight = 50;
+
 function drawButton(x, y, width, height, text, bgColor = 'black', textColor = 'white', isCircular = false) {
     ctx.fillStyle = bgColor;
 
@@ -302,8 +215,6 @@ function drawButton(x, y, width, height, text, bgColor = 'black', textColor = 'w
         ctx.fillText(text, x + width / 2, y + height / 2);
     }
 }
-
-//nyilak megrajzolása
 function drawArrow(x, y, width, height, direction) {
     ctx.fillStyle = 'black';
     ctx.beginPath();
@@ -322,7 +233,6 @@ function drawArrow(x, y, width, height, direction) {
     ctx.fill();
 }
 
-//Felso gombok (Start, 1P, 2P)
 function drawSideButtons(text) {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2 + 65;
@@ -351,7 +261,6 @@ function drawSideButtons(text) {
         );
     }
 
-    // Draw (1P)
     ctx.fillStyle = 'red';
     ctx.beginPath();
     ctx.moveTo(centerX - startButtonSize / 2 - wingOverlap, centerY - wingButtonHeight / 2);
@@ -373,12 +282,11 @@ function drawSideButtons(text) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(
-        '1P',
+        '2P',
         centerX - startButtonSize / 2 - wingButtonWidth / 2,
         centerY
     );
 
-    // clickable area for the "1P" button
     onePButtonArea = {
         x: centerX - startButtonSize / 2 - wingButtonWidth - wingOverlap,
         y: centerY - wingButtonHeight / 2,
@@ -386,7 +294,6 @@ function drawSideButtons(text) {
         height: wingButtonHeight,
     };
 
-    // Draw (2P)
     ctx.fillStyle = 'blue';
     ctx.beginPath();
     ctx.moveTo(centerX + startButtonSize / 2 + wingOverlap, centerY - wingButtonHeight / 2);
@@ -408,12 +315,11 @@ function drawSideButtons(text) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(
-        '2P',
+        '3P',
         centerX + startButtonSize / 2 + wingButtonWidth / 2,
         centerY
     );
 
-    // clickable area for the "2P" button
     twoPButtonArea = {
         x: centerX + startButtonSize / 2 + wingOverlap,
         y: centerY - wingButtonHeight / 2,
@@ -425,13 +331,17 @@ function drawSideButtons(text) {
 let onePButtonArea = {};
 let twoPButtonArea = {};
 
-//nyilak + end score gomb
 let selectedNumber = 5; 
 let onNumberChange = null; 
 
 let leftArrowArea = {};
 let rightArrowArea = {};
 
+
+
+
+
+//----------------Click és change funkciók------------------//
 function handleEndGameClick(event) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -468,12 +378,7 @@ function setOnNumberChange(callback) {
     onNumberChange = callback; 
 }
 
-function getSelectedNumber() {
-    return selectedNumber; 
-}
-
-// Add a new variable to track the Y position of the end score menu
-let endScoreMenuY = canvas.height / 2 + 160; // Initial position
+let endScoreMenuY = canvas.height / 2 + 160; 
 
 function drawEndGameOptions(yPosition = canvas.height / 2 + 160) {
     const x = (canvas.width - buttonWidth) / 2;
@@ -527,13 +432,12 @@ canvas.addEventListener('click', (event) => {
     if (distance <= startButtonSize / 2) {
         console.log("Start Game button pressed");
 
-        // Trigger all animations simultaneously
         initializeAnimationVariables();
         isAnimating = true;
         animate();
         setTimeout(()=>{
             hideMenu = true;
-            start(2);
+            start(playercount);
             mainLoop();
         }, 3000)
         return;
@@ -546,8 +450,8 @@ canvas.addEventListener('click', (event) => {
         mouseY >= onePButtonArea.y &&
         mouseY <= onePButtonArea.y + onePButtonArea.height
     ) {
-        console.log("1P button clicked");
-        return;
+        playercount = 2
+        console.log(`playercount: ${playercount}`);
     }
 
     if (
@@ -557,8 +461,8 @@ canvas.addEventListener('click', (event) => {
         mouseY >= twoPButtonArea.y &&
         mouseY <= twoPButtonArea.y + twoPButtonArea.height
     ) {
-        console.log("2P button clicked");
-        return;
+        playercount = 3
+        console.log(`playercount: ${playercount}`);
     }
 
     if (
@@ -612,8 +516,15 @@ canvas.addEventListener('click', (event) => {
     }
 });
 
-const images = {};
 
+
+
+
+//-------------------------Képek/assetek----------------------------//
+const images = {};
+const buttonText = 'Start';
+
+//Képek/assetek előre betöltése
 function preloadImages(imageSources, callback) {
     let loadedImages = 0;
     const totalImages = Object.keys(imageSources).length;
@@ -624,13 +535,14 @@ function preloadImages(imageSources, callback) {
         img.onload = () => {
             loadedImages++;
             if (loadedImages === totalImages) {
-                callback(); // All images are loaded
+                callback(); 
             }
         };
         images[key] = img;
     }
 }
 
+//Képek/assetek forrásai
 const imageSources = {
     logo: 'assets/tankmayhem_logo.png',
     volume: 'assets/volume.png',
@@ -640,20 +552,13 @@ const imageSources = {
     controller: 'assets/controller.png',
 };
 
+//A function meghívása
 preloadImages(imageSources, () => {
     console.log('All images loaded');
     run();
 });
 
-let isLeftBoxToggled = false;
-let isRightBoxToggled = false;
-
-let isAnimating = false; // Flag to prevent multiple animation triggers
-let leftBoxX = 0;
-let rightBoxX = canvas.width;
-let leftButtonX, rightButtonX;
-
-// Initialize animation variables
+//Animáláshoz szüksgéges változók megadása
 function initializeAnimationVariables() {
     const centerX = canvas.width / 2;
     const startButtonSize = 100;
@@ -664,23 +569,20 @@ function initializeAnimationVariables() {
     rightButtonX = centerX + startButtonSize / 2 + wingOverlap + 100;
 }
 
-// Unified animation function
+//Animáláért felelős function(gecinagy)
 function animate() {
     if (!isAnimating) return;
 
     const animationSpeed = 5;
 
-    // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Redraw the grid and static elements
     drawGrid(gridCellSize);
     const rows = Math.floor(canvas.height / gridCellSize);
     const cols = Math.floor(canvas.width / gridCellSize);
     const offsetX = (canvas.width - cols * gridCellSize) / 2;
     const offsetY = (canvas.height - rows * gridCellSize) / 2;
 
-    // Only draw corner boxes if they are still animating
     if (leftBoxX + leftBoxArea.size > 0) {
         leftBoxX -= animationSpeed;
         drawLeftCornerBox(leftBoxX, leftBoxArea.y, leftBoxArea.size, 'red', 'volume');
@@ -691,9 +593,8 @@ function animate() {
         drawRightCornerBox(rightBoxX, rightBoxArea.y, rightBoxArea.size, 'blue', 'pause');
     }
 
-    drawEndGameOptions(endScoreMenuY); // Pass the updated Y position
+    drawEndGameOptions(endScoreMenuY); 
 
-    // Animate the logo upwards
     if (logoY + 300 >= 0) {
         logoY -= animationSpeed;
     }
@@ -757,19 +658,18 @@ function animate() {
         ctx.fillText('2P', rightButtonX - wingButtonWidth / 2, centerY);
     }
 
-    // Animate the end score menu downwards
-    if (endScoreMenuY < canvas.height ) { // Stop at a certain position
+    if (endScoreMenuY < canvas.height ) { 
         endScoreMenuY += animationSpeed;
     }
 
-    // Redraw the "Start Game" button
+
     ctx.fillStyle = 'green';
     ctx.beginPath();
     ctx.arc(centerX, centerY, startButtonSize / 2, 0, Math.PI * 2);
     ctx.closePath();
     ctx.fill();
 
-    const startButtonImage = images.controller; // Use preloaded image
+    const startButtonImage = images.controller; 
     if (startButtonImage) {
         const imageSize = startButtonSize * 0.8;
         ctx.drawImage(
@@ -781,7 +681,6 @@ function animate() {
         );
     }
 
-    // Check if the animation is complete
     if (
         logoY + 300 < 0 &&
         leftBoxX + leftBoxArea.size <= 0 &&
@@ -790,9 +689,8 @@ function animate() {
         rightButtonX >= canvas.width + wingButtonWidth * 2 &&
         endScoreMenuY >= canvas.height - 100
     ) {
-        isAnimating = false; // Stop the animation
+        isAnimating = false; 
 
-        // Clear button areas to disable clicks
         leftBoxArea = null;
         rightBoxArea = null;
         onePButtonArea = null;
@@ -805,10 +703,27 @@ function animate() {
     if(!hideMenu)requestAnimationFrame(animate);
 }
 
+
+
+
+//--------(Run függvény)----------
+function run() {
+    drawGrid(gridCellSize);
+    const rows = Math.floor(canvas.height / gridCellSize);
+    const cols = Math.floor(canvas.width / gridCellSize);
+    const offsetX = (canvas.width - cols * gridCellSize) / 2;
+    const offsetY = (canvas.height - rows * gridCellSize) / 2;
+
+    drawCornerBoxes(offsetX, offsetY, cols, gridCellSize);
+    drawCenterImage(images.logo, 400, 300);
+    drawSideButtons(buttonText);
+    drawEndGameOptions();
+}
+
+
+
+
+
+//--------------------Futtatás-------------------//
 run();
 startLobbyMusic();
-
-//TODO:     -start game jobbra-balra wiggle; 
-//          -start game többszöri megnyomás után meghal; 
-//          -rányomásakor megnagyobbodik, átöleli a képernyőt és clearelődik az egész canvas hogy menjen a játék
-//           (miután visszaadta az end score-t és a playerek számát)

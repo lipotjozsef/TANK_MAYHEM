@@ -1,0 +1,4 @@
+//TODO:     -start game jobbra-balra wiggle; 
+//          -start game többszöri megnyomás után meghal; 
+//          -rányomásakor megnagyobbodik, átöleli a képernyőt és clearelődik az egész canvas hogy menjen a játék
+//           (miután visszaadta az end score-t és a playerek számát)
