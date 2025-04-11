@@ -5,7 +5,7 @@ export class MazeGenerator {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.cellSize = 50;
-        this.wallWidth = 20
+        this.wallWidth = this.cellSize / 2
         this.canvas.width = this.width * this.cellSize;
         this.canvas.height = this.height * this.cellSize;
         this.faceing = 0
@@ -17,6 +17,19 @@ export class MazeGenerator {
         this.leftSpawnSpaces = []
         this.rightSpawnSpaces = []
         this.wallEmptySpace = this.cellSize - this.wallWidth;
+    }
+
+    resizeMaze(width, height, cellSize){
+        this.width = width
+        this.height = height
+        this.cellSize = cellSize
+        this.canvas.width = this.width * this.cellSize;
+        this.canvas.height = this.height * this.cellSize;
+        this.maze = []
+        this.initialize()
+        this.generateMaze()
+        this.drawMaze() 
+        console.log(this.maze)
     }
 
     getFreeSpaces(){
@@ -38,6 +51,9 @@ export class MazeGenerator {
             for (let x = 1; x < (this.width / 2) - 1.5 ; x++) {
                 if (this.maze[y][x] === 0) {
                     this.leftSpawnSpaces.push([x, y])
+                    this.ctx.fillStyle = "red"
+                    this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize - 10, this.cellSize - 10)
+                    console.log("asd")
                 }
             }
         } 
@@ -46,6 +62,8 @@ export class MazeGenerator {
             for (let x = (this.width / 2) + 1.5; x < this.width; x++) {
                 if (this.maze[y][x] === 0) {
                     this.rightSpawnSpaces.push([x, y])
+                    this.ctx.fillStyle = "green"
+                    this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize - 10, this.cellSize - 10)
                 }
             }
         }
@@ -159,11 +177,12 @@ export class MazeGenerator {
                 this.drawCell(x, y, this.maze[y][x]);
             }
         }
-        this.ctx.fillStyle = "white"
-        this.ctx.fillRect(0,0, this.wallWidth, this.canvas.height)
-        this.ctx.fillRect(this.canvas.width - this.wallWidth, 0, this.wallWidth, this.canvas.height)
-        this.ctx.fillRect(0,0, this.canvas.width, this.wallWidth)
-        this.ctx.fillRect(0, this.canvas.height - this.wallWidth, this.canvas.width, this.wallWidth)
+        this.ctx.fillStyle = "red"
+        this.ctx.fillRect(0,0, this.canvas.width, this.cellSize - this.wallWidth)
+        this.ctx.fillRect(this.canvas.width - this.cellSize + this.wallWidth, this.cellSize - this.wallWidth, this.cellSize, this.canvas.height)
+
+        this.ctx.fillRect(0, 0, this.cellSize - this.wallWidth, this.canvas.height)
+        this.ctx.fillRect(0, this.canvas.height - this.cellSize + this.wallWidth, this.canvas.width, this.cellSize)
     }
 }
 

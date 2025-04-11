@@ -22,6 +22,9 @@ for (let i = 0; i < 5; i++) {
     powerups.push(new PowerUp(canvas, number[0], number[1], radius, mazeGenerator.cellSize, padding, typeNumber))    
     powerups[i].spawnPowerUp()
 }
+
+// mazeGenerator.resizeMaze(10, 10, 10)
+
 // const i = 0
 // powerups[i].disspawnPowerUp()
 // powerups.splice(i, 1)
