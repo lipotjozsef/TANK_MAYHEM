@@ -6,8 +6,6 @@ export class MazeGenerator {
         this.ctx = canvas.getContext('2d');
         this.cellSize = 50;
         this.wallWidth = this.cellSize / 2
-        this.canvas.width = this.width * this.cellSize;
-        this.canvas.height = this.height * this.cellSize;
         this.faceing = 0
         this.maze = [];
         this.visited = [];
@@ -19,10 +17,17 @@ export class MazeGenerator {
         this.wallEmptySpace = this.cellSize - this.wallWidth;
     }
 
-    resizeMaze()
+    resizeCanvasAndMaze(width = this.width, height = this.height, cellSize = this.cellSize)
     {
+        this.width = width;
+        this.height = height;
+        this.cellSize = cellSize;
         this.canvas.width = this.width * this.cellSize;
         this.canvas.height = this.height * this.cellSize;
+        this.initialize()
+        this.generateMaze(1,1)
+        this.getFreeSpaces()
+        this.getSpawnSpaces()
     }
 
     getFreeSpaces(){

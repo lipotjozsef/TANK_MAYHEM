@@ -23,13 +23,8 @@ for (let i = 0; i < 5; i++) {
     powerups[i].spawnPowerUp()
 }
 
+//Ez már jó resize
+mazeGenerator.resizeCanvasAndMaze(9)
 
-// let newCellSize = 20
-// let newWidth = 1080 / newCellSize
-// let newHeight = 720 / newCellSize
-// mazeGenerator.resizeMaze(newWidth, newHeight, newCellSize)
-// mazeGenerator.drawMaze()
 
-// const i = 0
-// powerups[i].disspawnPowerUp()
-// powerups.splice(i, 1)
+mazeGenerator.drawMaze()
