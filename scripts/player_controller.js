@@ -1,7 +1,7 @@
 import { MazeGenerator } from "./mazegenerator.js";
 import { PowerUp } from "./powerup.js";
 
-const canvas = document.getElementById("myCanvas");
+const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
 
@@ -203,7 +203,7 @@ class Player extends Object {
         this.rotationSpeed = 5;
         this.rotaionDirection = 0;
         this.direction = 0;
-        this.maxspeed = 250;
+        this.maxspeed = 150;
         this.drag = 20;
         this.ismoving = false;
         this.rotationMatrix = [1, 0];
@@ -268,7 +268,7 @@ class Player extends Object {
                     this.colliding = true;
                     return;
                 }
-            } else  this.colliding = false;
+            } else this.colliding = false;
         })
 
         /*for(let i = 0; i < globalPlayers.length; i++){
@@ -361,27 +361,53 @@ class Player extends Object {
     }
 }
 
+class PowerUpCollision extends Collider {
+    constructor(width, height, positionX, positionY, rotation, powerUp) {
+        super(width, height, positionX, positionY, rotation);
+        this.collider = new Collider(this, "circle");
+        this.colliding = false;
+        this.powerup = powerUp;
+    }
+
+    render() {
+        super.render();
+    }
+
+    move() {
+        globalPlayers.forEach(player => {
+            if(this.collider.isColliding(player.collider)) {
+                super.delete();
+                console.log(powerups.indexOf(this.powerup));
+                powerups.splice(powerups.indexOf(this.powerup), 1);
+            }
+        })
+    }
+}
 function clamp(min, max, value) {
     return Math.max(min, Math.min(max, value));
 }
 
-function start(players) {
+export function start(players) {
+    canvas.height = 780;
+    canvas.width = 780;
 
-    
     playerCount = players;
-
-    for(let i = 0; i < players; i++) {
-        //let newPlayer = new Player((canvas.width >> 1)+(Math.random() * 200), (canvas.height >> 1)+(Math.random() * 200), 20, 20, 0);
-        let newPlayer = new Player((canvas.width >> 1)-mazeGenerator.cellSize, (canvas.height >> 1), 20, 20, 0);
-        console.log(newPlayer.position);
-        document.addEventListener("keypress", (event) => {newPlayer.handleInput(event);})
-        document.addEventListener("keyup", (event) => {newPlayer.notmoving(event);})
-    }
 
     mazeGenerator.initialize();
     mazeGenerator.generateMaze(1, 1);
     mazeGenerator.getFreeSpaces();
     mazeGenerator.getSpawnSpaces()
+
+    for(let i = 0; i < players; i++) {
+        //let newPlayer = new Player((canvas.width >> 1)+(Math.random() * 200), (canvas.height >> 1)+(Math.random() * 200), 20, 20, 0);
+        
+        let spawnPoint = getrandomSpawnPoint();
+        console.log(spawnPoint, "random spawn point");
+        let newPlayer = new Player(spawnPoint[0], spawnPoint[0], 20, 20, 0);
+        console.log(newPlayer.position);
+        document.addEventListener("keypress", (event) => {newPlayer.handleInput(event);})
+        document.addEventListener("keyup", (event) => {newPlayer.notmoving(event);})
+    }
 
     for (let i = 0; i < 5; i++) {
         const number = mazeGenerator.freeSpaces[Math.round(Math.random() * mazeGenerator.freeSpaces.length)]
@@ -389,15 +415,35 @@ function start(players) {
         const padding = (mazeGenerator.cellSize - radius * 2) / 2
         let typeNumber = Math.round(POWERUPHELPER.typeList.length * Math.random())
         typeNumber > POWERUPHELPER.typeList.length - 1 ? typeNumber = POWERUPHELPER.typeList.length - 1 : typeNumber = typeNumber
-        powerups.push(new PowerUp(canvas, number[0], number[1], radius, mazeGenerator.cellSize, padding, typeNumber))    
+        let newPOWERUP = new PowerUp(canvas, number[0], number[1], radius, mazeGenerator.cellSize, padding, typeNumber);
+        powerups.push(newPOWERUP)    
+        let newPowerUpObject = new Object(radius, radius, number[0]*(mazeGenerator.cellSize) + (mazeGenerator.cellSize/2), number[1]*mazeGenerator.cellSize+ (mazeGenerator.cellSize/2), 0);
+        let newPowerUpCollider = new PowerUpCollision(newPowerUpObject, "circle", newPOWERUP);
     }
 
-    mazeGenerator.wallSpaces.forEach(wall => {
-        let width = wall[0]*mazeGenerator.cellSize;
-        let height =  wall[1]*mazeGenerator.cellSize;
-        let newWallObject = new Object(mazeGenerator.cellSize, mazeGenerator.cellSize, width+mazeGenerator.cellSize/2, height+mazeGenerator.cellSize/2, 0);
-        let newWallCollider = new Collider(newWallObject, "rectangle");
-    })
+    //for(let i = 0; i < mazeGenerator.wallSpaces.length; i++) {
+    for(let i = 0; i < mazeGenerator.wallSpaces.length; i++) {
+        let wall = mazeGenerator.wallSpaces[i];
+        let width = wall[0]*(mazeGenerator.cellSize);
+        let height = wall[1]*(mazeGenerator.cellSize);
+        let newWallObject = new Object((mazeGenerator.cellSize/1.5), (mazeGenerator.cellSize/1.5), width+mazeGenerator.cellSize/2, height+mazeGenerator.cellSize/2, 0);
+
+        let _ = new Collider(newWallObject, "rectangle");
+    }
+}
+
+let rightSpawn = false;
+function getrandomSpawnPoint() {
+    let spawnList = mazeGenerator.freeSpaces;
+    if(rightSpawn) spawnList = mazeGenerator.rightSpawnSpaces;
+    let randomIndex = randomIntMinMax(0, spawnList.length);
+    console.log(randomIndex);
+    rightSpawn = !rightSpawn;
+    return [spawnList[randomIndex][0]*mazeGenerator.cellSize-(mazeGenerator.cellSize>>1), spawnList[randomIndex][1]*mazeGenerator.cellSize-(mazeGenerator.cellSize>>1)];
+}
+
+function randomIntMinMax(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 function endOfRound() {
@@ -406,7 +452,7 @@ function endOfRound() {
     console.log("WON")
 }
 
-function mainLoop() {
+export function mainLoop() {
     deltaTime = (Date.now() - startTime) / 1000;
     //console.log(deltaTime);
     startTime = Date.now();
@@ -435,6 +481,3 @@ function mainLoop() {
 
     requestAnimationFrame(mainLoop);
 }
-
-start(1);
-mainLoop();
