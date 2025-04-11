@@ -1,7 +1,7 @@
 import { MazeGenerator } from "./mazegenerator.js";
 import { PowerUp } from "./powerup.js";
 
-const canvas = document.getElementById("myCanvas");
+const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
 
@@ -387,9 +387,10 @@ function clamp(min, max, value) {
     return Math.max(min, Math.min(max, value));
 }
 
-function start(players) {
+export function start(players) {
+    canvas.height = 780;
+    canvas.width = 780;
 
-    
     playerCount = players;
 
     mazeGenerator.initialize();
@@ -451,7 +452,7 @@ function endOfRound() {
     console.log("WON")
 }
 
-function mainLoop() {
+export function mainLoop() {
     deltaTime = (Date.now() - startTime) / 1000;
     //console.log(deltaTime);
     startTime = Date.now();
@@ -480,6 +481,3 @@ function mainLoop() {
 
     requestAnimationFrame(mainLoop);
 }
-
-start(2);
-mainLoop();

@@ -1,5 +1,12 @@
+import { start, mainLoop } from "./player_controller.js";
+
 const canvas = document.getElementById('game_canvas');
 const ctx = canvas.getContext('2d');
+
+let hideMenu = false;
+
+let rightBoxArea;
+let leftBoxArea;
 
 // meretek
 canvas.width = 1080;
@@ -524,6 +531,11 @@ canvas.addEventListener('click', (event) => {
         initializeAnimationVariables();
         isAnimating = true;
         animate();
+        setTimeout(()=>{
+            hideMenu = true;
+            start(2);
+            mainLoop();
+        }, 3000)
         return;
     }
 
@@ -790,7 +802,7 @@ function animate() {
     }
 
     // Continue the animation
-    requestAnimationFrame(animate);
+    if(!hideMenu)requestAnimationFrame(animate);
 }
 
 run();
