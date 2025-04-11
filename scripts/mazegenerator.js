@@ -4,7 +4,7 @@ export class MazeGenerator {
         this.height = height;
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        this.cellSize = 50;
+        this.cellSize = 20;
         this.wallWidth = this.cellSize / 2
         this.canvas.width = this.width * this.cellSize;
         this.canvas.height = this.height * this.cellSize;
@@ -20,16 +20,23 @@ export class MazeGenerator {
     }
 
     resizeMaze(width, height, cellSize){
-        this.width = width
-        this.height = height
-        this.cellSize = cellSize
+        this.width = width;
+        this.height = height;
+        this.cellSize = cellSize;
+        this.wallWidth = this.cellSize / 2
         this.canvas.width = this.width * this.cellSize;
         this.canvas.height = this.height * this.cellSize;
-        this.maze = []
+        this.faceing = 0
+        this.maze = [];
+        this.visited = [];
+        this.stack = [];
+        this.freeSpaces = []
+        this.wallSpaces = []
+        this.leftSpawnSpaces = []
+        this.rightSpawnSpaces = []
+        this.wallEmptySpace = this.cellSize - this.wallWidth;
         this.initialize()
-        this.generateMaze()
-        this.drawMaze() 
-        console.log(this.maze)
+        this.generateMaze(1, 1)
     }
 
     getFreeSpaces(){
@@ -52,8 +59,7 @@ export class MazeGenerator {
                 if (this.maze[y][x] === 0) {
                     this.leftSpawnSpaces.push([x, y])
                     this.ctx.fillStyle = "red"
-                    this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize - 10, this.cellSize - 10)
-                    console.log("asd")
+                    // this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize - 10, this.cellSize - 10)
                 }
             }
         } 
@@ -63,7 +69,7 @@ export class MazeGenerator {
                 if (this.maze[y][x] === 0) {
                     this.rightSpawnSpaces.push([x, y])
                     this.ctx.fillStyle = "green"
-                    this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize - 10, this.cellSize - 10)
+                    // this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize - 10, this.cellSize - 10)
                 }
             }
         }
@@ -122,10 +128,11 @@ export class MazeGenerator {
 
         if (color === "white") {
             this.ctx.fillRect(x * this.cellSize - this.wallEmptySpace / 2, y * this.cellSize - this.wallEmptySpace / 2, this.cellSize + this.wallEmptySpace, this.cellSize + this.wallEmptySpace);  
+            console.log(this.cellSize + this.wallEmptySpace)
         }
         if(color === "black")
         {
-            this.ctx.fillRect(x * this.cellSize + this.wallEmptySpace / 2, y * this.cellSize + this.wallEmptySpace /2 , this.cellSize, this.cellSize);  
+            this.ctx.fillRect(x * this.cellSize + this.wallEmptySpace / 2, y * this.cellSize + this.wallEmptySpace /2 , this.cellSize, this.cellSize); 
         }
         
     }
@@ -177,7 +184,7 @@ export class MazeGenerator {
                 this.drawCell(x, y, this.maze[y][x]);
             }
         }
-        this.ctx.fillStyle = "red"
+        this.ctx.fillStyle = "white"
         this.ctx.fillRect(0,0, this.canvas.width, this.cellSize - this.wallWidth)
         this.ctx.fillRect(this.canvas.width - this.cellSize + this.wallWidth, this.cellSize - this.wallWidth, this.cellSize, this.canvas.height)
 
