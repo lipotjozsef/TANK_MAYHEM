@@ -2,7 +2,7 @@ import { MazeGenerator } from "./mazegenerator.js";
 import { PowerUp } from "./powerup.js";
 
 const canvas = document.getElementById("myCanvas")
-const mazeGenerator = new MazeGenerator(31, 21, canvas);
+const mazeGenerator = new MazeGenerator(21, 21, canvas);
 mazeGenerator.initialize();
 mazeGenerator.generateMaze(1, 1);
 mazeGenerator.drawMaze();
@@ -24,11 +24,11 @@ for (let i = 0; i < 5; i++) {
 }
 
 
-let newCellSize = 20
-let newWidth = canvas.width / newCellSize
-let newHeight = canvas.height / newCellSize
-mazeGenerator.resizeMaze(newWidth, newHeight, newCellSize)
-mazeGenerator.drawMaze()
+// let newCellSize = 20
+// let newWidth = 1080 / newCellSize
+// let newHeight = 720 / newCellSize
+// mazeGenerator.resizeMaze(newWidth, newHeight, newCellSize)
+// mazeGenerator.drawMaze()
 
 // const i = 0
 // powerups[i].disspawnPowerUp()
