@@ -464,6 +464,7 @@ function endOfRound() {
 }
 
 export function mainLoop() {
+
     deltaTime = (Date.now() - startTime) / 1000;
     //console.log(deltaTime);
     startTime = Date.now();
