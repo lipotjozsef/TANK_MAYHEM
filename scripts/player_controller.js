@@ -492,8 +492,3 @@ export function mainLoop() {
 
     requestAnimationFrame(mainLoop);
 }
-
-if(document.currentScript == this) {
-    start(3);
-    mainLoop();
-}
