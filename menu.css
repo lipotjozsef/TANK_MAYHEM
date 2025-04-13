@@ -1,8 +1,9 @@
 #game_canvas{
     border: 1px solid #000000;
     background-color: #ffffff;
-    display: block;
-    margin: 0 auto;
+    display: inline-block; /* Change to inline-block for alignment */
+    margin: 0;
+    vertical-align: top; /* Align with the divs */
 }
 
 body{
@@ -11,4 +12,92 @@ body{
     font-family: 'Press Start 2P', cursive;
     font-size: 20px;
     text-align: center;
+}
+#leftmenu{
+    display: none; /* Hide the menus initially */
+    position: relative; /* Required for animation */
+    border: 2px solid black;
+    padding: 10px;
+    margin-left: 10px;
+    vertical-align: top;
+    background-color: #ffffff;
+    width: 150px;
+    height: 1030px;
+}
+
+#rightmenu{
+    display: none; /* Hide the menus initially */
+    position: relative; /* Required for animation */
+    border: 2px solid black;
+    padding: 10px;
+    margin-left: 10px;
+    vertical-align: top;
+    background-color: #ffffff;
+    width: 150px;
+    height: 1030px;
+}
+
+#leftmenu.visible, #rightmenu.visible {
+    display: inline-block; /* Show the menus when the "visible" class is added */
+    animation-duration: 1s; /* Animation duration */
+    animation-fill-mode: forwards; /* Keep the final state after animation */
+}
+
+#leftmenu.visible {
+    animation-name: slideInLeft; /* Apply left slide-in animation */
+}
+
+#rightmenu.visible {
+    animation-name: slideInRight; /* Apply right slide-in animation */
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-200px); /* Start off-screen to the left */
+        opacity: 0; /* Start invisible */
+    }
+    to {
+        transform: translateX(0); /* End at its original position */
+        opacity: 1; /* Fully visible */
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(200px); /* Start off-screen to the right */
+        opacity: 0; /* Start invisible */
+    }
+    to {
+        transform: translateX(0); /* End at its original position */
+        opacity: 1; /* Fully visible */
+    }
+}
+
+#leftmenu img, #rightmenu img {
+    margin: auto;
+    width: 100px; /* Set the desired width */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 212px; /* Add spacing between images */
+    display: block; /* Place images below each other */
+}
+
+#startingtext {
+    font-size: 50px;
+    color: #000000;
+    text-align: center;
+    margin-top: 20px;
+    position: relative;
+    animation: tilt 2s ease-in-out infinite;
+}
+
+@keyframes tilt {
+    0% {
+        transform: rotate(-1deg);
+    }
+    50% {
+        transform: rotate(1deg);
+    }
+    100% {
+        transform: rotate(-1deg);
+    }
 }

@@ -4,7 +4,10 @@ const ctx = canvas.getContext('2d');
 canvas.width = 1080;
 canvas.height = 720;
 const logoSrc = 'assets/tankmayhem_logo2.png';
-let lobbyMusic = new Audio('assets/lobby_music.mp3');
+let lobbyMusic = new Audio('assets/lobby_music.mp3'); // Replace with your lobby music file path
+
+const hoverSound2P = new Audio('assets/two_players.m4a'); // Replace with your 2P sound file path
+const hoverSound3P = new Audio('assets/three_players.m4a'); // Replace with your 3P sound file patheplace with your sound file path
 
 //Képek/assetek forrásai
 const imageSources = {
@@ -31,7 +34,12 @@ let isAnimating = false;
 let leftBoxX = 0;
 let rightBoxX = canvas.width;
 let leftButtonX, rightButtonX;
+let isStartButtonPressed = false;
 
+let rotationAngle = 0; // Current rotation angle
+let rotationDirection = 1; // 1 for clockwise, -1 for counterclockwise
+const maxRotationAngle = 10; // Maximum tilt angle in degrees
+const rotationSpeed = 0.5; // Speed of rotation
 
 
 
@@ -53,10 +61,7 @@ canvas.addEventListener('click', function startMusicOnInteraction() {
     canvas.removeEventListener('click', startMusicOnInteraction);
 });
 
-// function stopLobbyMusic() {
-//     lobbyMusic.pause();
-//     lobbyMusic.currentTime = 0;
-// }
+
 
 
 
@@ -427,6 +432,14 @@ setOnNumberChange((newNumber) => {
     console.log(`Selected number changed to: ${newNumber}`);
 });
 
+function showMenus() {
+    const leftMenu = document.getElementById('leftmenu');
+    const rightMenu = document.getElementById('rightmenu');
+
+    leftMenu.classList.add('visible'); // Add the "visible" class to trigger animation
+    rightMenu.classList.add('visible');
+}
+
 canvas.addEventListener('click', (event) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -440,18 +453,31 @@ canvas.addEventListener('click', (event) => {
     );
 
     if (distance <= startButtonSize / 2) {
+        if (isStartButtonPressed) {
+            console.log("Start button already pressed");
+            return; // Ignore further presses
+        }
+
+        isStartButtonPressed = true; // Set the flag to true
         console.log("Start Game button pressed");
 
         initializeAnimationVariables();
         isAnimating = true;
         animate();
-        setTimeout(()=>{
+        setTimeout(() => {
             hideMenu = true;
+            showMenus(); // Show the menus with animation
             start(playercount);
             mainLoop();
-        }, 3000)
+        }, 3000);
         return;
     }
+});
+
+canvas.addEventListener('click', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
 
     if (
         onePButtonArea &&
@@ -523,6 +549,49 @@ canvas.addEventListener('click', (event) => {
             console.log("Game is playing");
         }
         return;
+    }
+});
+
+let isHovering2P = false; // Track hover state for 2P button
+let isHovering3P = false; // Track hover state for 3P button
+
+canvas.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+
+    // Check if mouse is over the 2P button
+    if (
+        onePButtonArea &&
+        mouseX >= onePButtonArea.x &&
+        mouseX <= onePButtonArea.x + onePButtonArea.width &&
+        mouseY >= onePButtonArea.y &&
+        mouseY <= onePButtonArea.y + onePButtonArea.height
+    ) {
+        if (!isHovering2P) {
+            hoverSound2P.currentTime = 0; // Reset sound to the beginning
+            hoverSound2P.play();
+            isHovering2P = true;
+        }
+    } else {
+        isHovering2P = false; // Reset hover state when mouse leaves
+    }
+
+    // Check if mouse is over the 3P button
+    if (
+        twoPButtonArea &&
+        mouseX >= twoPButtonArea.x &&
+        mouseX <= twoPButtonArea.x + twoPButtonArea.width &&
+        mouseY >= twoPButtonArea.y &&
+        mouseY <= twoPButtonArea.y + twoPButtonArea.height
+    ) {
+        if (!isHovering3P) {
+            hoverSound3P.currentTime = 0; // Reset sound to the beginning
+            hoverSound3P.play();
+            isHovering3P = true;
+        }
+    } else {
+        isHovering3P = false; // Reset hover state when mouse leaves
     }
 });
 
@@ -634,7 +703,7 @@ function animate() {
         ctx.font = '20px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('1P', leftButtonX + wingButtonWidth / 2, centerY);
+        ctx.fillText('2P', leftButtonX + wingButtonWidth / 2, centerY);
     }
 
     if (rightButtonX < canvas.width + wingButtonWidth * 2) {
@@ -659,7 +728,7 @@ function animate() {
         ctx.font = '20px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('2P', rightButtonX - wingButtonWidth / 2, centerY);
+        ctx.fillText('3P', rightButtonX - wingButtonWidth / 2, centerY);
     }
 
     if (endScoreMenuY < canvas.height ) { 
