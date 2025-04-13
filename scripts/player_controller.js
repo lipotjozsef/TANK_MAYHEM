@@ -40,7 +40,7 @@ class Bullet extends Object {
 
         this.imageLoaded = false;
         this.bulletImage = new Image();
-        this.bulletImage.src = `../assets/bullet.png`;
+        this.bulletImage.src = `./assets/bullet.png`;
         this.bulletImage.onload = () => {this.imageLoaded = true};
     }
 
@@ -175,7 +175,7 @@ class Player extends Object {
         alivePlayersCount += 1;
 
         this.tankImage = new Image();
-        this.tankImage.src = `../assets/tank${this.playerID}.png`;
+        this.tankImage.src = `./assets/tank${this.playerID}.png`;
         this.isImageReady = false;
         this.tankImage.onload = () => {this.isImageReady = true};
     }
