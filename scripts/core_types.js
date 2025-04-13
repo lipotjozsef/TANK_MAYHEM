@@ -118,6 +118,7 @@ export class Collider extends Object {
         this.rotation = this.parent.rotation;
         this.scale = this.parent.scale;
 
+        /*
         ctx.save();
 
         if (!this.iscolliding) ctx.strokeStyle = "#00FF00";
@@ -137,6 +138,6 @@ export class Collider extends Object {
             ctx.arc(this.position.x, this.position.y, this.scale.width, 0, Math.PI * 2);
             ctx.stroke();
         }
-        ctx.restore();
+        ctx.restore();*/
     }
 }

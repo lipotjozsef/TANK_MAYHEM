@@ -37,6 +37,11 @@ class Bullet extends Object {
         this.lastPosition = new Vector2(this.position.x, this.position.y);
         this.colliding = true;
         this.rotationMatrix = [1, 0];
+
+        this.imageLoaded = false;
+        this.bulletImage = new Image();
+        this.bulletImage.src = `../assets/bullet.png`;
+        this.bulletImage.onload = () => {this.imageLoaded = true};
     }
 
     move() {
@@ -96,6 +101,14 @@ class Bullet extends Object {
 
     render() {
         super.render()
+        if(this.imageLoaded) {
+            ctx.save();
+            ctx.translate(this.position.x, this.position.y); // Position the rect to the center
+            ctx.rotate((this.rotation * Math.PI) / 180);
+            ctx.drawImage(this.bulletImage, -this.scale.width, -this.scale.height, this.scale.width*2, this.scale.height);
+            ctx.restore();
+        }
+        /*
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.scale.width, 0, Math.PI * 2);
         ctx.fill();
@@ -103,7 +116,7 @@ class Bullet extends Object {
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
         ctx.lineTo(this.position.x+this.velocity.x, this.position.y+this.velocity.y);
-        ctx.stroke();
+        ctx.stroke();*/
     }
 
     spawn(parent) {
@@ -147,54 +160,68 @@ class Player extends Object {
         this.colliding = false;
         this.lastInput = "";
         this.lastPosition = new Vector2(spawnX, spawnY);
-        this.rotation = 0;
         this.rotationSpeed = 5;
         this.rotaionDirection = 0;
         this.direction = 0;
         this.maxspeed = 150;
         this.drag = 20;
         this.ismoving = false;
-        this.rotationMatrix = [1, 0];
+        this.rotationMatrix = [0, 1];
         this.collider = new Collider(this, "rectangle");
         this.isdead = false;
         globalPlayers.push(this);
         this.playerID = globalPlayers.indexOf(this);
         this.keybinds = playerKeybinds[this.playerID];
         alivePlayersCount += 1;
+
+        this.tankImage = new Image();
+        this.tankImage.src = `../assets/tank${this.playerID}.png`;
+        this.isImageReady = false;
+        this.tankImage.onload = () => {this.isImageReady = true};
     }
 
     render() {
         super.render()
         ctx.fillStyle = "#000000";
 
-        // DRAW TANK
-        ctx.save();
+        
+        /*ctx.save();
         ctx.translate(this.position.x, this.position.y); // Position the rect to the center
         ctx.rotate((this.rotation * Math.PI) / 180);
         ctx.beginPath();
         ctx.rect(-this.scale.width/2, -this.scale.height/2, this.scale.width, this.scale.height);
         ctx.fill();
-        ctx.restore();
+        ctx.restore();*/
+        // DRAW TANK
+        if(this.isImageReady) {
+            ctx.save();
+            ctx.translate(this.position.x, this.position.y); // Position the rect to the center
+            ctx.rotate((this.rotation * Math.PI) / 180);
+            ctx.drawImage(this.tankImage, -this.scale.width, -this.scale.height, this.scale.width*2, this.scale.height*2);
+            ctx.restore();
+        }
 
         // VELOCITY DEBUG DRAW
+        /*
         ctx.strokeStyle = "#0000FF";
         ctx.moveTo(this.position.x, this.position.y);
         ctx.lineTo(this.position.x+this.velocity.x, this.position.y+ this.velocity.y);
-        ctx.stroke();
+        ctx.stroke();*/
 
         // FOWARDS VECTOR DEBUG DRAW
+        /*
         ctx.strokeStyle = "#0000FF";
         ctx.moveTo(this.position.x, this.position.y);
         ctx.lineTo(this.position.x+(100*this.rotationMatrix[0]), this.position.y+(100*this.rotationMatrix[1]));
-        ctx.stroke();
+        ctx.stroke();*/
         
         // POSITION DEBUG DRAW
+        /*
         ctx.strokeStyle = "#000000";
         ctx.fillStyle = "#FF0000";
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, 10, 0, 2*Math.PI);
-        ctx.fill();
-        
+        ctx.fill();*/
     }
 
     spawnBullet() {
