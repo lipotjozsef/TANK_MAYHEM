@@ -1,9 +1,9 @@
 #game_canvas{
     border: 1px solid #000000;
     background-color: #ffffff;
-    display: inline-block; /* Change to inline-block for alignment */
+    display: inline-block;
     margin: 0;
-    vertical-align: top; /* Align with the divs */
+    vertical-align: top;
 }
 
 body{
@@ -14,8 +14,8 @@ body{
     text-align: center;
 }
 #leftmenu{
-    display: none; /* Hide the menus initially */
-    position: relative; /* Required for animation */
+    display: none;
+    position: relative;
     border: 2px solid black;
     padding: 10px;
     margin-left: 10px;
@@ -26,8 +26,8 @@ body{
 }
 
 #rightmenu{
-    display: none; /* Hide the menus initially */
-    position: relative; /* Required for animation */
+    display: none;
+    position: relative;
     border: 2px solid black;
     padding: 10px;
     margin-left: 10px;
@@ -38,47 +38,47 @@ body{
 }
 
 #leftmenu.visible, #rightmenu.visible {
-    display: inline-block; /* Show the menus when the "visible" class is added */
-    animation-duration: 1s; /* Animation duration */
-    animation-fill-mode: forwards; /* Keep the final state after animation */
+    display: inline-block;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
 }
 
 #leftmenu.visible {
-    animation-name: slideInLeft; /* Apply left slide-in animation */
+    animation-name: slideInLeft;
 }
 
 #rightmenu.visible {
-    animation-name: slideInRight; /* Apply right slide-in animation */
+    animation-name: slideInRight;
 }
 
 @keyframes slideInLeft {
     from {
-        transform: translateX(-200px); /* Start off-screen to the left */
-        opacity: 0; /* Start invisible */
+        transform: translateX(-200px);
+        opacity: 0;
     }
     to {
-        transform: translateX(0); /* End at its original position */
-        opacity: 1; /* Fully visible */
+        transform: translateX(0);
+        opacity: 1;
     }
 }
 
 @keyframes slideInRight {
     from {
-        transform: translateX(200px); /* Start off-screen to the right */
-        opacity: 0; /* Start invisible */
+        transform: translateX(200px);
+        opacity: 0;
     }
     to {
-        transform: translateX(0); /* End at its original position */
-        opacity: 1; /* Fully visible */
+        transform: translateX(0);
+        opacity: 1;
     }
 }
 
 #leftmenu img, #rightmenu img {
     margin: auto;
-    width: 100px; /* Set the desired width */
-    height: auto; /* Maintain aspect ratio */
-    margin-bottom: 212px; /* Add spacing between images */
-    display: block; /* Place images below each other */
+    width: 100px;
+    height: auto;
+    margin-bottom: 212px;
+    display: block;
 }
 
 #startingtext {
