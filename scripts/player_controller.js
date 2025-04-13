@@ -10,6 +10,7 @@ const mazeGenerator = new MazeGenerator(21, 21, canvas);
 const powerups = []
 const POWERUPHELPER = new PowerUp(canvas, 0, 0, 0, 0, 0, 0)
 
+export const activePowerUp = [];
 
 var startTime = Date.now();
 var deltaTime = 0;
@@ -207,6 +208,7 @@ class Player extends Object {
                 let ShieldPowerUp = new Shield(22, 22, this);
                 break;
         }
+        console.log(activePowerUp)
     }
 
     move() {
@@ -340,8 +342,8 @@ class PowerUpCollision extends Collider {
         globalPlayers.forEach(player => {
             if(this.collider.isColliding(player.collider)) {
                 let type = this.powerup.disspawnPowerUp();
+                activePowerUp[player.playerID] = this.powerup.type;
                 player.usePowerUp(type);
-
                 super.delete();
             }
         })
@@ -359,6 +361,7 @@ export function start(players) {
         console.log(newPlayer.position);
         document.addEventListener("keypress", (event) => {newPlayer.handleInput(event);})
         document.addEventListener("keyup", (event) => {newPlayer.notmoving(event);})
+        activePowerUp.push("none");
     }
     
     const radius = 20;
@@ -370,7 +373,6 @@ export function start(players) {
         let newPOWERUP = new PowerUp(canvas, number[0], number[1], radius, mazeGenerator.cellSize, padding, typeNumber);
         powerups.push(newPOWERUP);
         let newPowerUpObject = new Object(radius, radius, number[0]*(mazeGenerator.cellSize) + (mazeGenerator.cellSize/2), number[1]*mazeGenerator.cellSize+ (mazeGenerator.cellSize/2), 0);
-        
         let _ = new PowerUpCollision(newPowerUpObject, "circle", newPOWERUP);
     }
 
@@ -383,6 +385,8 @@ export function start(players) {
 
         let _ = new Collider(newWallObject, "rectangle");
     }
+
+    console.log(activePowerUp);
 }
 
 let rightSpawn = false;
