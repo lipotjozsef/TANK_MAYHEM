@@ -440,6 +440,11 @@ function showMenus() {
     rightMenu.classList.add('visible');
 }
 
+function showBottomMenu() {
+    const bottomMenu = document.getElementById('bottommenu');
+    bottomMenu.classList.add('visible'); // Add the "visible" class to trigger animation
+}
+
 canvas.addEventListener('click', (event) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -466,7 +471,10 @@ canvas.addEventListener('click', (event) => {
         animate();
         setTimeout(() => {
             hideMenu = true;
-            showMenus(); // Show the menus with animation
+            showMenus(); // Show the left and right menus with animation
+            if (playercount === 3) {
+                showBottomMenu(); // Show the bottom menu if playercount is 3
+            }
             start(playercount);
             mainLoop();
         }, 3000);
