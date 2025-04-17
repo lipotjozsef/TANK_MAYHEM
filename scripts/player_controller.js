@@ -227,6 +227,11 @@ class Player extends Object {
     spawnBullet() {
         let newBullet = new Bullet(8.5, 8.5, this.position.x+(30*this.rotationMatrix[0]), this.position.y+(30*this.rotationMatrix[1]), this.rotation);
         newBullet.spawn(this);
+
+        if (activePowerUp[this.playerID] !== "none") {
+            activePowerUp[this.playerID] = "none";
+            console.log(`Player ${this.playerID} power-up vége(lövés).`);
+        }
     }
 
     usePowerUp(type) {
