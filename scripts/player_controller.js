@@ -6,7 +6,8 @@ import { normalizeAngle, randomIntMinMax } from "./math_helper_utils.js";
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
-const mazeGenerator = new MazeGenerator(21, 21, canvas);
+const mazeGenerator = new MazeGenerator(21, 17, canvas);
+
 const powerups = []
 const POWERUPHELPER = new PowerUp(canvas, 0, 0, 0, 0, 0, 0)
 
@@ -27,7 +28,7 @@ const globalPlayers = [];
 
 class Bullet extends Object {
     constructor(width, height, positionX, positionY, rotation) {
-        super(width, height, positionX, positionY, rotation);
+        super(width, height, positionX, positionY, rotation, "bullet.png");
         this.TimeToLiveSecond = 3;
         this.parentPlayer = null;
         this.canKillParent = false;
@@ -37,11 +38,11 @@ class Bullet extends Object {
         this.lastPosition = new Vector2(this.position.x, this.position.y);
         this.colliding = true;
         this.rotationMatrix = [1, 0];
+    }
 
-        this.imageLoaded = false;
-        this.bulletImage = new Image();
-        this.bulletImage.src = `./assets/bullet.png`;
-        this.bulletImage.onload = () => {this.imageLoaded = true};
+    delete() {
+        this.parentPlayer.bulletCount -= 1;
+        super.delete();
     }
 
     move() {
@@ -49,7 +50,7 @@ class Bullet extends Object {
             if(this.collider.isColliding(player.collider) && this.canKillParent) {
                 player.die();
                 this.visible = false;
-                super.delete();
+                this.delete();
             }
         })
 
@@ -59,8 +60,13 @@ class Bullet extends Object {
                     this.colliding = false; 
                     return;
                 }
-
-                if(this.collider.isColliding(object)) {
+                else if(object instanceof Bullet) {
+                    if(this.collider.isColliding(object.collider)){
+                        this.visible = false;
+                        this.delete();
+                    }
+                }
+                else if(this.collider.isColliding(object)) {
                     // RESET POSITION TO BEFORE COLLISION TO PREVENT JIGGLING
                     this.position.x = this.lastPosition.x;
                     this.position.y = this.lastPosition.y;
@@ -100,14 +106,7 @@ class Bullet extends Object {
     }
 
     render() {
-        super.render()
-        if(this.imageLoaded) {
-            ctx.save();
-            ctx.translate(this.position.x, this.position.y); // Position the rect to the center
-            ctx.rotate((this.rotation * Math.PI) / 180);
-            ctx.drawImage(this.bulletImage, -this.scale.width, -this.scale.height, this.scale.width*2, this.scale.height);
-            ctx.restore();
-        }
+        super.render(this.scale.width*2, this.scale.height)
         /*
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.scale.width, 0, Math.PI * 2);
@@ -129,19 +128,30 @@ class Bullet extends Object {
 
         setTimeout(() => {
             this.visible = false;
-            super.delete();
+            this.delete();
         }, this.TimeToLiveSecond * 1000);
     }
 }
 
 class Shield extends Object {
     constructor(width, height, parent) {
-        super(width, height, parent.position.x, parent.position.y, 0);
+        super(width, height, parent.position.x, parent.position.y, 0, "shield_bubble_text.png");
         this.parentPlayer = parent;
-        this.duration = 0;
-        this.health = 100;
+        this.duration = 15;
+        this.freq = -1 * (this.duration - 5);
         this.shieldCollider = new Collider(this, "circle");
+        this.timeAlive = 0;
         globalObjects.push(this);
+        setInterval(() => {this.freq += 1;}, 1000)
+        setTimeout(() => {
+            this.visible = false;
+            this.delete();
+        }, this.duration * 1000);
+    }
+
+    delete() {
+        activePowerUp[this.parentPlayer.playerID] = "none";
+        super.delete();
     }
 
     move() {
@@ -150,13 +160,16 @@ class Shield extends Object {
     }
 
     render() {
-
+        this.timeAlive += deltaTime;
+        let opacity = 0.5 * (1 + Math.sin(2*Math.PI*this.freq*this.timeAlive));
+        if(this.freq <= 0) opacity = 1;
+        super.render(this.scale.width*2.5, this.scale.height*2.5, opacity)
     }
 }
 
 class Player extends Object {
     constructor(spawnX = 0, spawnY = 0, width = 50, height = 50, rotation = 0) {
-        super(width, height, spawnX, spawnY, rotation);
+        super(width, height, spawnX, spawnY, rotation, "");
         this.colliding = false;
         this.lastInput = "";
         this.lastPosition = new Vector2(spawnX, spawnY);
@@ -170,18 +183,15 @@ class Player extends Object {
         this.collider = new Collider(this, "rectangle");
         this.isdead = false;
         globalPlayers.push(this);
+        alivePlayersCount += 1;
+        this.bulletCount = 0;
         this.playerID = globalPlayers.indexOf(this);
         this.keybinds = playerKeybinds[this.playerID];
-        alivePlayersCount += 1;
-
-        this.tankImage = new Image();
-        this.tankImage.src = `./assets/tank${this.playerID}.png`;
-        this.isImageReady = false;
-        this.tankImage.onload = () => {this.isImageReady = true};
+        this.spriteImage.src = `./assets/tank${this.playerID}.png`;
     }
 
     render() {
-        super.render()
+        super.render(this.scale.width*2, this.scale.height*2)
         ctx.fillStyle = "#000000";
 
         
@@ -193,13 +203,6 @@ class Player extends Object {
         ctx.fill();
         ctx.restore();*/
         // DRAW TANK
-        if(this.isImageReady) {
-            ctx.save();
-            ctx.translate(this.position.x, this.position.y); // Position the rect to the center
-            ctx.rotate((this.rotation * Math.PI) / 180);
-            ctx.drawImage(this.tankImage, -this.scale.width, -this.scale.height, this.scale.width*2, this.scale.height*2);
-            ctx.restore();
-        }
 
         // VELOCITY DEBUG DRAW
         /*
@@ -225,8 +228,10 @@ class Player extends Object {
     }
 
     spawnBullet() {
-        let newBullet = new Bullet(8.5, 8.5, this.position.x+(30*this.rotationMatrix[0]), this.position.y+(30*this.rotationMatrix[1]), this.rotation);
+        if(this.bulletCount == 5) return;
+        let newBullet = new Bullet(8.5, 8.5, this.position.x+(35*this.rotationMatrix[0]), this.position.y+(35*this.rotationMatrix[1]), this.rotation);
         newBullet.spawn(this);
+        this.bulletCount += 1;
     }
 
     usePowerUp(type) {

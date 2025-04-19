@@ -43,16 +43,31 @@ export class Vector2 extends Point {
 }
 
 export class Object {
-    constructor(width = 50, height = 50, startX = 0, startY = 0, rotation = 0) {
+    constructor(width = 50, height = 50, startX = 0, startY = 0, rotation = 0, imageName = undefined) {
         this.scale = new Point(width, height);
         this.position = new Point(startX, startY)
         this.velocity = new Vector2(0, 0);
         this.rotation = rotation;
         this.visible = true;
+        this.imageLoaded = false;
+        if(imageName != undefined) {
+            this.spriteImage = new Image();
+            this.spriteImage.src = `./assets/${imageName}`;
+            this.spriteImage.onload = () => {this.imageLoaded = true};
+        }
     }
 
-    render() {
+    render(width=0, height=0, opacity=1.0) {
         if(!this.visible) return;
+        if(this.imageLoaded) {
+            ctx.save();
+            ctx.translate(this.position.x, this.position.y); // Position the rect to the center
+            ctx.rotate((this.rotation * Math.PI) / 180);
+            ctx.globalAlpha = opacity;
+            ctx.drawImage(this.spriteImage, -width>>1, -height>>1, width, height);
+            ctx.globalAlpha = 1.0;
+            ctx.restore();
+        }
     }
 
     delete() {
@@ -106,6 +121,8 @@ export class Collider extends Object {
             else return false;
         }
         
+        
+
     }
 
     move() {
