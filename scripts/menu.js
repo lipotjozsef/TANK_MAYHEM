@@ -1,4 +1,4 @@
-import { start, mainLoop } from "./player_controller.js";
+import { start, mainLoop, activePowerUp } from "./player_controller.js";
 const canvas = document.getElementById('game_canvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 1080;
@@ -7,21 +7,17 @@ const logoSrc = 'assets/tankmayhem_logo2.png';
 let lobbyMusic = new Audio('assets/lobby_music.mp3'); // Replace with your lobby music file path
 
 const hoverSound2P = new Audio('assets/two_players.m4a'); // Replace with your 2P sound file path
-const hoverSound3P = new Audio('assets/three_players.m4a'); // Replace with your 3P sound file patheplace with your sound file path
+const hoverSound3P = new Audio('assets/three_players.m4a'); // Replace with your 3P sound file path
 
 //Képek/assetek forrásai
 const imageSources = {
     logo: 'assets/tankmayhem_logo2.png',
-    volume: 'assets/volume.png',
-    mute: 'assets/mute.png',
-    pause: 'assets/pause.png',
-    play: 'assets/play-button.png',
+    volume: 'assets/volume.png', // Updated to GitHub logo
+    mute: 'assets/mute.png',  // Updated to GitHub logo
+    pause: 'assets/github-logo.png', // Updated to GitHub logo
+    play: 'assets/github-logo.png',  // Updated to GitHub logo
     controller: 'assets/controller.png',
 };
-
-
-
-
 
 //---------------------Változók---------------------//
 let hideMenu = false;
@@ -36,16 +32,8 @@ let rightBoxX = canvas.width;
 let leftButtonX, rightButtonX;
 let isStartButtonPressed = false;
 
-let rotationAngle = 0; // Current rotation angle
-let rotationDirection = 1; // 1 for clockwise, -1 for counterclockwise
-const maxRotationAngle = 10; // Maximum tilt angle in degrees
-const rotationSpeed = 0.5; // Speed of rotation
-
-
-
 
 //---------------------Lobby zene---------------------//
-
 lobbyMusic.loop = true;
 lobbyMusic.volume = 0.05;
 
@@ -60,10 +48,6 @@ canvas.addEventListener('click', function startMusicOnInteraction() {
     startLobbyMusic();
     canvas.removeEventListener('click', startMusicOnInteraction);
 });
-
-
-
-
 
 //----------------------------Grid----------------------------//
 const gridCellSize = 72;
@@ -96,10 +80,6 @@ function drawLine(x1, y1, x2, y2) {
     ctx.lineTo(x2, y2);
     ctx.stroke();
 }
-
-
-
-
 
 //---------------------Bal,jobb sarok (negyzetek)---------------------------//
 function drawCornerBoxes(offsetX, offsetY, cols, cellSize) {
@@ -169,12 +149,20 @@ function drawCornerBox(x, y, size, color, imageKey, isRight) {
         const imageY = y + size / 2 - scaledSize / 2;
 
         ctx.drawImage(img, imageX, imageY, scaledSize, scaledSize);
+
+        // Add clickable link
+        const link = document.createElement('a');
+        link.href = 'https://github.com/lipotjozsef/TANK_MAYHEM';
+        link.target = '_blank';
+        link.style.position = 'absolute';
+        link.style.left = `${imageX}px`;
+        link.style.top = `${imageY}px`;
+        link.style.width = `${scaledSize}px`;
+        link.style.height = `${scaledSize}px`;
+        link.style.zIndex = 10;
+        document.body.appendChild(link);
     }
 }
-
-
-
-
 
 //--------------------------Logo----------------------------------//
 const logoImage = new Image();
@@ -196,12 +184,7 @@ const offscreenCanvas = document.createElement('canvas');
 offscreenCanvas.width = canvas.width;
 offscreenCanvas.height = canvas.height;
 
-
-
-
-
 //-------------------------End score options----------------------------// 
-
 const buttonWidth = 200;
 const buttonHeight = 50;
 
@@ -352,10 +335,6 @@ let onNumberChange = null;
 let leftArrowArea = {};
 let rightArrowArea = {};
 
-
-
-
-
 //----------------Click és change funkciók------------------//
 function handleEndGameClick(event) {
     const rect = canvas.getBoundingClientRect();
@@ -402,9 +381,9 @@ function drawEndGameOptions(yPosition = canvas.height / 2 + 160) {
     drawButton(x, y, buttonWidth, buttonHeight, 'End Score');
     drawButton(x + 25, y + 60, buttonWidth - 50, buttonHeight, selectedNumber.toString());
 
-    const arrowWidth = 40;
-    const arrowHeight = 20;
-    const spacing = 20;
+    const arrowWidth = 50; // Increased from 40
+    const arrowHeight = 40; // Increased from 20
+    const spacing = 10;
 
     // Calculate arrow areas
     leftArrowArea = {
@@ -440,6 +419,11 @@ function showMenus() {
     rightMenu.classList.add('visible');
 }
 
+function showBottomMenu() {
+    const bottomMenu = document.getElementById('bottommenu');
+    bottomMenu.classList.add('visible'); // Add the "visible" class to trigger animation
+}
+
 canvas.addEventListener('click', (event) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -466,7 +450,10 @@ canvas.addEventListener('click', (event) => {
         animate();
         setTimeout(() => {
             hideMenu = true;
-            showMenus(); // Show the menus with animation
+            showMenus(); // Show the left and right menus with animation
+            if (playercount === 3) {
+                showBottomMenu(); // Show the bottom menu if playercount is 3
+            }
             start(playercount);
             mainLoop();
         }, 3000);
@@ -595,10 +582,6 @@ canvas.addEventListener('mousemove', (event) => {
     }
 });
 
-
-
-
-
 //-------------------------Képek/assetek----------------------------//
 const images = {};
 const buttonText = 'Start';
@@ -626,10 +609,6 @@ preloadImages(imageSources, () => {
     console.log('All images loaded');
     run();
 });
-
-
-
-
 
 //-------------------------Animáció----------------------------//
 //Animáláshoz szüksgéges változók megadása
@@ -735,7 +714,6 @@ function animate() {
         endScoreMenuY += animationSpeed;
     }
 
-
     ctx.fillStyle = 'green';
     ctx.beginPath();
     ctx.arc(centerX, centerY, startButtonSize / 2, 0, Math.PI * 2);
@@ -776,10 +754,6 @@ function animate() {
     if(!hideMenu)requestAnimationFrame(animate);
 }
 
-
-
-
-
 //--------(Run függvény)----------
 function run() {
     drawGrid(gridCellSize);
@@ -790,9 +764,68 @@ function run() {
 
     drawCornerBoxes(offsetX, offsetY, cols, gridCellSize);
     drawCenterImage(images.logo, 400, 300);
-        drawSideButtons(buttonText);
+    drawSideButtons(buttonText);
     drawEndGameOptions();
 }
+
+//--------------------Power-up Animations-------------------//
+function startPowerUpAnimation(playerID, powerUpType) {
+    const imageId = getPowerUpImageId(playerID, powerUpType);
+    const imageElement = document.getElementById(imageId);
+    if (imageElement) {
+        imageElement.classList.add("power-up-active");
+    }
+}
+
+function stopPowerUpAnimation(playerID, powerUpType) {
+    const imageId = getPowerUpImageId(playerID, powerUpType);
+    const imageElement = document.getElementById(imageId);
+    if (imageElement) {
+        imageElement.classList.remove("power-up-active");
+    }
+}
+
+function lightUpPowerUpBackground(playerID, powerUpType) {
+    const imageId = getPowerUpImageId(playerID, powerUpType);
+    const imageElement = document.getElementById(imageId);
+    if (imageElement) {
+        imageElement.style.backgroundColor = "white";
+        imageElement.style.borderRadius = "10px"; // Optional: Add rounded corners
+    }
+}
+
+function removePowerUpBackground(playerID, powerUpType) {
+    const imageId = getPowerUpImageId(playerID, powerUpType);
+    const imageElement = document.getElementById(imageId);
+    if (imageElement) {
+        imageElement.style.backgroundColor = "transparent";
+    }
+}
+
+function getPowerUpImageId(playerID, powerUpType) {
+    const colors = ["red", "green", "blue"];
+    return `${colors[playerID]}-${powerUpType}`;
+}
+
+function updatePowerUpAnimations() {
+    activePowerUp.forEach((powerUpType, playerID) => {
+        const previousType = activePowerUpAnimations[playerID];
+        if (powerUpType !== previousType) {
+            if (previousType !== "none") {
+                stopPowerUpAnimation(playerID, previousType);
+                removePowerUpBackground(playerID, previousType);
+            }
+            if (powerUpType !== "none") {
+                startPowerUpAnimation(playerID, powerUpType);
+                lightUpPowerUpBackground(playerID, powerUpType);
+            }
+            activePowerUpAnimations[playerID] = powerUpType;
+        }
+    });
+}
+
+const activePowerUpAnimations = Array(activePowerUp.length).fill("none");
+setInterval(updatePowerUpAnimations, 100);
 
 
 

@@ -20,7 +20,7 @@ body{
     padding: 10px;
     margin-left: 10px;
     vertical-align: top;
-    background-color: #ffffff;
+    background-color: #8b3020;
     width: 150px;
     height: 1030px;
 }
@@ -32,7 +32,7 @@ body{
     padding: 10px;
     margin-left: 10px;
     vertical-align: top;
-    background-color: #ffffff;
+    background-color: #0d9c14;
     width: 150px;
     height: 1030px;
 }
@@ -77,7 +77,8 @@ body{
     margin: auto;
     width: 100px;
     height: auto;
-    margin-bottom: 212px;
+    margin-bottom: 200px;
+    margin-top: 20px;
     display: block;
 }
 
@@ -99,5 +100,63 @@ body{
     }
     100% {
         transform: rotate(-1deg);
+    }
+}
+
+#bottommenu {
+    display: none;
+    position: relative;
+    border: 2px solid black;
+    padding: 10px;
+    margin-top: 10px;
+    margin: auto;   
+    background-color: #1b3194;
+    width: 1030px;
+    margin-top: 5px;
+    height: 150px;
+}
+
+#bottommenu img {
+    margin: auto;
+    width: 100px;
+    height: auto;
+    display: inline-block;
+    margin: 20px 76px;
+}
+
+#bottommenu.visible {
+    display: block;
+    animation-name: slideInBottom;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slideInBottom {
+    from {
+        transform: translateY(200px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.power-up-active {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
     }
 }
