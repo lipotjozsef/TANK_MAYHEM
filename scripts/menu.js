@@ -150,17 +150,21 @@ function drawCornerBox(x, y, size, color, imageKey, isRight) {
 
         ctx.drawImage(img, imageX, imageY, scaledSize, scaledSize);
 
-        // Add clickable link
-        const link = document.createElement('a');
-        link.href = 'https://github.com/lipotjozsef/TANK_MAYHEM';
-        link.target = '_blank';
-        link.style.position = 'absolute';
-        link.style.left = `${imageX}px`;
-        link.style.top = `${imageY}px`;
+        const canvasContainer = canvas.parentElement;
+        let link = document.getElementById('github-link');
+        if (!link) {
+            link = document.createElement('a');
+            link.id = 'github-link';
+            link.href = 'https://github.com/lipotjozsef/TANK_MAYHEM';
+            link.target = '_blank';
+            link.style.position = 'absolute';
+            link.style.zIndex = 10;
+            canvasContainer.appendChild(link);
+        }
+        link.style.left = `${canvas.offsetLeft + imageX}px`;
+        link.style.top = `${canvas.offsetTop + imageY}px`;
         link.style.width = `${scaledSize}px`;
         link.style.height = `${scaledSize}px`;
-        link.style.zIndex = 10;
-        document.body.appendChild(link);
     }
 }
 
