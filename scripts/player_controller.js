@@ -1,12 +1,13 @@
-import { MazeGenerator } from "./mazegenerator.js";
+
 import { PowerUp } from "./powerup.js";
-import { globalObjects, Vector2, Object, Collider } from "./core_types.js";
+import { mazeGenerator, globalObjects, Vector2, Object, Collider, Ray } from "./core_types.js";
 import { normalizeAngle, randomIntMinMax } from "./math_helper_utils.js";
+import { Shield, Rocket, Laser } from "./PlayerPowerUps.js"
 
 const canvas = document.querySelector("canvas");
-const ctx = canvas.getContext("2d");
+export const ctx = canvas.getContext("2d");
 
-const mazeGenerator = new MazeGenerator(21, 17, canvas);
+
 
 const powerups = []
 const POWERUPHELPER = new PowerUp(canvas, 0, 0, 0, 0, 0, 0)
@@ -14,7 +15,7 @@ const POWERUPHELPER = new PowerUp(canvas, 0, 0, 0, 0, 0, 0)
 export const activePowerUp = [];
 
 var startTime = Date.now();
-var deltaTime = 0;
+export var deltaTime = 0;
 var alivePlayersCount = 0;
 var isEndOfRound = false;
 
@@ -24,24 +25,26 @@ let playerKeybinds = [
     ["8", "2", "4", "6", "+"]
 ]
 
-const globalPlayers = [];
+export const globalPlayers = [];
 
-class Bullet extends Object {
+export class Bullet extends Object {
     constructor(width, height, positionX, positionY, rotation) {
         super(width, height, positionX, positionY, rotation, "bullet.png");
-        this.TimeToLiveSecond = 3;
+        this.TimeToLiveSecond = 7;
         this.parentPlayer = null;
         this.canKillParent = false;
-        this.maxSpeed = 350;
+        this.maxSpeed = 200;
         this.velocity = new Vector2(this.maxSpeed, this.maxSpeed);
-        this.collider = new Collider(this, "circle");
+        this.collider = new Collider(this, "circle", 2, [1, 3, 6]);
         this.lastPosition = new Vector2(this.position.x, this.position.y);
-        this.colliding = true;
+        this.colliding = false;
         this.rotationMatrix = [1, 0];
+        this.deleted = false;
     }
 
     delete() {
         this.parentPlayer.bulletCount -= 1;
+        this.deleted = true;
         super.delete();
     }
 
@@ -62,8 +65,7 @@ class Bullet extends Object {
                 }
                 else if(object instanceof Bullet) {
                     if(this.collider.isColliding(object.collider)){
-                        this.visible = false;
-                        this.delete();
+                        this.colliding = false;
                     }
                 }
                 else if(this.collider.isColliding(object)) {
@@ -73,7 +75,7 @@ class Bullet extends Object {
 
                     // ROTATE BULLET AND CALMP ROTATION IN BETWEEN 0 AND 360
                     if(this.rotation == 0) this.rotation = 180;
-                    else this.rotation += this.rotation + randomIntMinMax(1, 5);
+                    else this.rotation += this.rotation + randomIntMinMax(10, 25);
                     this.rotation = normalizeAngle(this.rotation);
 
                     this.colliding = true;
@@ -127,43 +129,10 @@ class Bullet extends Object {
         }, 10);
 
         setTimeout(() => {
+            if(this.deleted) return;
             this.visible = false;
             this.delete();
         }, this.TimeToLiveSecond * 1000);
-    }
-}
-
-class Shield extends Object {
-    constructor(width, height, parent) {
-        super(width, height, parent.position.x, parent.position.y, 0, "shield_bubble_text.png");
-        this.parentPlayer = parent;
-        this.duration = 15;
-        this.freq = -1 * (this.duration - 5);
-        this.shieldCollider = new Collider(this, "circle");
-        this.timeAlive = 0;
-        globalObjects.push(this);
-        setInterval(() => {this.freq += 1;}, 1000)
-        setTimeout(() => {
-            this.visible = false;
-            this.delete();
-        }, this.duration * 1000);
-    }
-
-    delete() {
-        activePowerUp[this.parentPlayer.playerID] = "none";
-        super.delete();
-    }
-
-    move() {
-        this.position.x = this.parentPlayer.position.x;
-        this.position.y = this.parentPlayer.position.y;
-    }
-
-    render() {
-        this.timeAlive += deltaTime;
-        let opacity = 0.5 * (1 + Math.sin(2*Math.PI*this.freq*this.timeAlive));
-        if(this.freq <= 0) opacity = 1;
-        super.render(this.scale.width*2.5, this.scale.height*2.5, opacity)
     }
 }
 
@@ -180,8 +149,9 @@ class Player extends Object {
         this.drag = 20;
         this.ismoving = false;
         this.rotationMatrix = [0, 1];
-        this.collider = new Collider(this, "rectangle");
+        this.collider = new Collider(this, "rectangle", 1, [2, 3, 4, 5]);
         this.isdead = false;
+        this.bulletCode = 0;
         globalPlayers.push(this);
         alivePlayersCount += 1;
         this.bulletCount = 0;
@@ -193,45 +163,30 @@ class Player extends Object {
     render() {
         super.render(this.scale.width*2, this.scale.height*2)
         ctx.fillStyle = "#000000";
-
-        
-        /*ctx.save();
-        ctx.translate(this.position.x, this.position.y); // Position the rect to the center
-        ctx.rotate((this.rotation * Math.PI) / 180);
-        ctx.beginPath();
-        ctx.rect(-this.scale.width/2, -this.scale.height/2, this.scale.width, this.scale.height);
-        ctx.fill();
-        ctx.restore();*/
-        // DRAW TANK
-
-        // VELOCITY DEBUG DRAW
-        /*
-        ctx.strokeStyle = "#0000FF";
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x+this.velocity.x, this.position.y+ this.velocity.y);
-        ctx.stroke();*/
-
-        // FOWARDS VECTOR DEBUG DRAW
-        /*
-        ctx.strokeStyle = "#0000FF";
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x+(100*this.rotationMatrix[0]), this.position.y+(100*this.rotationMatrix[1]));
-        ctx.stroke();*/
-        
-        // POSITION DEBUG DRAW
-        /*
-        ctx.strokeStyle = "#000000";
-        ctx.fillStyle = "#FF0000";
-        ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, 10, 0, 2*Math.PI);
-        ctx.fill();*/
     }
 
     spawnBullet() {
         if(this.bulletCount == 5) return;
-        let newBullet = new Bullet(8.5, 8.5, this.position.x+(35*this.rotationMatrix[0]), this.position.y+(35*this.rotationMatrix[1]), this.rotation);
-        newBullet.spawn(this);
-        this.bulletCount += 1;
+        let bulletPosition = new Vector2(this.position.x+(35*this.rotationMatrix[0]), this.position.y+(35*this.rotationMatrix[1]));
+        
+        switch(this.bulletCode) {
+            case 0:
+                let newBullet = new Bullet(8.5, 8.5, bulletPosition.x, bulletPosition.y, this.rotation);
+                newBullet.spawn(this);
+                this.bulletCount += 1;
+                break;
+            case 1:
+                let newRocket = new Rocket(bulletPosition.x, bulletPosition.y, this);
+                newRocket.spawnBullet();
+                break;
+            case 2:
+                console.log("Laser run")
+                let newLaser = new Laser(this);
+                newLaser.spawn();
+                this.bulletCode = -1;
+                break;
+        }
+        
     }
 
     usePowerUp(type) {
@@ -239,6 +194,14 @@ class Player extends Object {
             case "shield":
                 let ShieldPowerUp = new Shield(22, 22, this);
                 break;
+            case "rocket":
+                this.bulletCode = 1;
+                break;
+            case "laser":
+                if(this.bulletCode == -1) return;
+                this.bulletCode = 2;
+                break;
+
         }
         console.log(activePowerUp)
     }
@@ -313,7 +276,7 @@ class Player extends Object {
     handleInput(event) {
         //console.log(event.key);
         let key = event.key.toLowerCase();
-        if(!this.keybinds.includes(event.key) || event.repeat || this.lastInput == key) return;
+        if(!this.keybinds.includes(event.key) || event.repeat || this.lastInput == key || this.isdead) return;
         //console.log(key);
         event.preventDefault();
 
@@ -334,7 +297,7 @@ class Player extends Object {
     }
 
     notmoving(event) {
-        if(!this.keybinds.includes(event.key) || event.repeat) return;
+        if(!this.keybinds.includes(event.key) || event.repeat || this.isdead) return;
         event.preventDefault();
         let key = event.key.toLowerCase();
         if(key == this.keybinds[2] && this.rotaionDirection == -1 || key == this.keybinds[3] && this.rotaionDirection == 1) this.rotaionDirection = 0;
@@ -356,7 +319,7 @@ class Player extends Object {
 class PowerUpCollision extends Collider {
     constructor(parent, type, powerUp) {
         super(parent, type);
-        this.collider = new Collider(this, "circle");
+        this.collider = new Collider(this, "circle", 4, [1]);
         this.colliding = false;
         this.powerup = powerUp;
     }
@@ -373,6 +336,7 @@ class PowerUpCollision extends Collider {
     move() {
         globalPlayers.forEach(player => {
             if(this.collider.isColliding(player.collider)) {
+                if(activePowerUp[player.playerID] != "none") return;
                 let type = this.powerup.disspawnPowerUp();
                 activePowerUp[player.playerID] = this.powerup.type;
                 player.usePowerUp(type);
@@ -388,9 +352,9 @@ export function start(players) {
 
     for(let i = 0; i < players; i++) {
         let spawnPoint = getrandomSpawnPoint();
-        console.log(spawnPoint, "random spawn point");
+        //console.log(spawnPoint, "random spawn point");
         let newPlayer = new Player(spawnPoint[0], spawnPoint[1], 20, 20, 0);
-        console.log(newPlayer.position);
+        //console.log(newPlayer.position);
         document.addEventListener("keypress", (event) => {newPlayer.handleInput(event);})
         document.addEventListener("keyup", (event) => {newPlayer.notmoving(event);})
         activePowerUp.push("none");
@@ -399,7 +363,10 @@ export function start(players) {
     const radius = 20;
     const padding = (mazeGenerator.cellSize - radius * 2) / 2;
     for (let i = 0; i < 5; i++) {
-        const number = mazeGenerator.freeSpaces[Math.round(Math.random() * mazeGenerator.freeSpaces.length)];
+        let number = mazeGenerator.freeSpaces[Math.round(1+Math.random() * mazeGenerator.freeSpaces.length)];
+        while(number == undefined) {
+            number = mazeGenerator.freeSpaces[Math.round(1+Math.random() * mazeGenerator.freeSpaces.length)];
+        }
         let typeNumber = Math.round(POWERUPHELPER.typeList.length * Math.random())
         typeNumber > POWERUPHELPER.typeList.length - 1 ? typeNumber = POWERUPHELPER.typeList.length - 1 : typeNumber = typeNumber
         let newPOWERUP = new PowerUp(canvas, number[0], number[1], radius, mazeGenerator.cellSize, padding, typeNumber);
@@ -415,10 +382,10 @@ export function start(players) {
         let height = wall[1]*(mazeGenerator.cellSize);
         let newWallObject = new Object((mazeGenerator.cellSize/1.5), (mazeGenerator.cellSize/1.5), width+mazeGenerator.cellSize/2, height+mazeGenerator.cellSize/2, 0);
 
-        let _ = new Collider(newWallObject, "rectangle");
+        let _ = new Collider(newWallObject, "rectangle", 3, [1, 2, 5]);
     }
 
-    console.log(activePowerUp);
+    //console.log(activePowerUp);
 }
 
 let rightSpawn = false;
@@ -442,7 +409,7 @@ function endOfRound() {
 }
 
 export function mainLoop() {
-
+    
     deltaTime = (Date.now() - startTime) / 1000;
     //console.log(deltaTime);
     startTime = Date.now();
@@ -468,6 +435,6 @@ export function mainLoop() {
     if(alivePlayersCount == 1 && isEndOfRound == false) {
         //setTimeout(endOfRound, 3000)
     }
-
     requestAnimationFrame(mainLoop);
 }
+
