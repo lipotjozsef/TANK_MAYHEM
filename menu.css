@@ -22,7 +22,7 @@ body{
     vertical-align: top;
     background-color: #8b3020;
     width: 150px;
-    height: 1030px;
+    height: 830px;
 }
 
 #rightmenu{
@@ -34,7 +34,7 @@ body{
     vertical-align: top;
     background-color: #0d9c14;
     width: 150px;
-    height: 1030px;
+    height: 830px;
 }
 
 #leftmenu.visible, #rightmenu.visible {
@@ -77,7 +77,7 @@ body{
     margin: auto;
     width: 100px;
     height: auto;
-    margin-bottom: 200px;
+    margin-bottom: 140px;
     margin-top: 20px;
     display: block;
 }
