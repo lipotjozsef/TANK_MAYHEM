@@ -1,4 +1,4 @@
-import { start, mainLoop, activePowerUp } from "./player_controller.js";
+import { start, mainLoop, activePowerUp, winner, playersScore, setScoreToWin } from "./player_controller.js";
 const canvas = document.getElementById('game_canvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 1080;
@@ -412,6 +412,7 @@ function drawEndGameOptions(yPosition = canvas.height / 2 + 160) {
 }
 
 setOnNumberChange((newNumber) => {
+    setScoreToWin(newNumber);
     console.log(`Selected number changed to: ${newNumber}`);
 });
 
