@@ -1,13 +1,14 @@
 
 import { PowerUp } from "./powerup.js";
-import { mazeGenerator, globalObjects, Vector2, Object, Collider, Ray } from "./core_types.js";
+import { mazeGenerator, globalObjects, cleanObjects, Vector2, Object, Collider } from "./core_types.js";
 import { normalizeAngle, randomIntMinMax, calcRotMatrix, getPositionFromPlayer } from "./math_helper_utils.js";
 import { Shield, Rocket, Laser, Explosion } from "./PlayerPowerUps.js"
 
 const canvas = document.querySelector("canvas");
 export const ctx = canvas.getContext("2d");
 
-
+var scoreToWin = 2;
+let playersStart = -1;
 
 const powerups = []
 const POWERUPHELPER = new PowerUp(canvas, 0, 0, 0, 0, 0, 0)
@@ -26,7 +27,7 @@ let playerKeybinds = [
     ["8", "5", "4", "6", "+"]
 ]
 
-export const globalPlayers = [];
+export var globalPlayers = [];
 
 export class Bullet extends Object {
     constructor(width, height, positionX, positionY, rotation) {
@@ -340,6 +341,8 @@ class PowerUpCollision extends Collider {
 
 export function start(players) {
 
+    if (playersStart == -1) playersStart = players;
+
     mazeGenerator.resizeCanvasAndMaze()
 
     for(let i = 0; i < players; i++) {
@@ -383,8 +386,12 @@ export function start(players) {
         let _ = new Collider(newWallObject, "rectangle", 3, [1, 2, 5, 9]);
         lastwallpos = wall;
     }
-
+    isEndOfRound = false;
     //console.log(activePowerUp);
+}
+
+export function setScoreToWin(newNum) {
+    scoreToWin = newNum;
 }
 
 let rightSpawn = false;
@@ -403,16 +410,46 @@ function getrandomSpawnPoint() {
     return [xPos+(mazeGenerator.cellSize>>1), yPos+(mazeGenerator.cellSize>>1)];
 }
 
+export let winner = null;
+
 function endOfRound() {
-    if(isEndOfRound) return;
-    isEndOfRound = true;
-    console.log("WON")
+    
+    globalPlayers.forEach(player => {
+        if(!player.isdead) {
+            winner = player;
+        }
+    })
+
+    if(winner == null) console.log("Nobody won this round!");
+    else {
+        playersScore[winner.playerID] += 1;
+        let winnerScore = playersScore[winner.playerID];
+        console.log(`Player ${winner.playerID+1} won this round! Current score: ${winnerScore} pts`)
+        if(winnerScore >= scoreToWin) {
+            console.log(`${winner.playerID+1} won the whole match!\nReturning to the main page.`)
+            location.reload();
+        }
+    }
+    newRound();
+
+}
+
+function newRound() {
+    winner = null;
+    cleanObjects();
+    alreadyTakenSpaces = [];
+    globalPlayers.length = 0;
+    console.log(globalPlayers.length);
+    powerups.forEach(pw => pw.disspawnPowerUp())
+    powerups.length = 0;
+    alivePlayersCount = 0;
+    start(playersStart);
 }
 
 export function mainLoop() {
     
     deltaTime = (Date.now() - startTime) / 1000;
-    //console.log(deltaTime);
+
     startTime = Date.now();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -434,7 +471,9 @@ export function mainLoop() {
     })
 
     if(alivePlayersCount == 1 && isEndOfRound == false) {
-        //setTimeout(endOfRound, 3000)
+        console.log("END OF ROUND");
+        isEndOfRound = true;
+        setTimeout(endOfRound, 7000);
     }
     requestAnimationFrame(mainLoop);
 }
