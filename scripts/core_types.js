@@ -1,11 +1,11 @@
 import { MazeGenerator } from "./mazegenerator.js";
 import { clamp } from "./math_helper_utils.js";
 
-export const globalObjects = [];
+export var globalObjects = [];
 
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
-export const mazeGenerator = new MazeGenerator(21, 17, canvas);
+export var mazeGenerator = new MazeGenerator(21, 17, canvas);
 
 export class Point {
   constructor(x, y) {
@@ -304,4 +304,9 @@ export class Collider extends Object {
     }
     ctx.restore();*/
   }
+}
+
+export function cleanObject() {
+  globalObjects.length = 0;
+  mazeGenerator = new MazeGenerator(21, 17, canvas);
 }
