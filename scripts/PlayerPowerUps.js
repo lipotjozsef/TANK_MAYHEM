@@ -6,15 +6,19 @@ import {
   deltaTime,
 } from "./player_controller.js";
 import { Vector2, Collider, globalObjects, Object, Ray } from "./core_types.js";
-import { normalizeAngle, randomIntMinMax } from "./math_helper_utils.js";
-
+import { normalizeAngle, randomIntMinMax, calcRotMatrix, getPositionFromPlayer } from "./math_helper_utils.js";
 export class Laser extends Object {
-  //constructor(width = 50, height = 50, startX = 0, startY = 0, rotation = 0, imageName = undefined) {
   constructor(parent) {
     super(10, 10, parent.position.x, parent.position.y, parent.rotation);
     this.playerParent = parent;
     this.duration = 10;
     this.laserLenght = 0;
+    this.freq = -1 * (this.duration - 5);
+    this.timeAlive = 0;
+    setInterval(() => {
+      this.freq += 1;
+    }, 1000);
+    
     this.laserSight = new Ray(0, 0, 10, 10, 0);
     this.laserSight.debugDraw = false;
   }
@@ -26,11 +30,13 @@ export class Laser extends Object {
     super.delete();
   }
 
+  
+
   move() {
     this.position.x = this.playerParent.position.x;
     this.position.y = this.playerParent.position.y;
-    let laserGoalPos = new Vector2(this.position.x+(1000*this.playerParent.rotationMatrix[0]), this.position.y+(1000*this.playerParent.rotationMatrix[1]));
-    let noozlePos = new Vector2(this.position.x+(45*this.playerParent.rotationMatrix[0]), this.position.y+(35*this.playerParent.rotationMatrix[1]));
+    let laserGoalPos = getPositionFromPlayer(this, this.playerParent, 1000);
+    let noozlePos = getPositionFromPlayer(this, this.playerParent, 45);
     this.laserSight.startPos.x = noozlePos.x;
     this.laserSight.startPos.y = noozlePos.y;
     this.laserSight.goalPosition.x = laserGoalPos.x;
@@ -50,12 +56,20 @@ export class Laser extends Object {
   }
 
   render() {
+    this.timeAlive += deltaTime;
+    let opacity =
+      0.5 * (1 + Math.sin(2 * Math.PI * this.freq * this.timeAlive));
+    if (this.freq <= 0) opacity = 1;
     ctx.save();
+    ctx.globalAlpha = opacity;
     ctx.beginPath();
     ctx.strokeStyle = "#FF0000";
-    ctx.moveTo(this.position.x+(10*this.playerParent.rotationMatrix[0]), this.position.y+(10*this.playerParent.rotationMatrix[1]));
-    ctx.lineTo(this.position.x+(this.laserLenght*this.playerParent.rotationMatrix[0]), this.position.y+(this.laserLenght*this.playerParent.rotationMatrix[1]))
+    let drawNoozlePos = getPositionFromPlayer(this, this.playerParent, 10);
+    let laserPos = getPositionFromPlayer(this, this.playerParent, this.laserLenght);
+    ctx.moveTo(drawNoozlePos.x, drawNoozlePos.y);
+    ctx.lineTo(laserPos.x, laserPos.y)
     ctx.stroke();
+    ctx.globalAlpha = 1.0;
     ctx.restore();
   }
   spawn() {
@@ -67,15 +81,93 @@ export class Laser extends Object {
   }
 }
 
-export class Explosion extends Object {}
+export class Explosion extends Object {
+  //constructor(width = 50, height = 50, startX = 0, startY = 0, rotation = 0, imageName = undefined) {
+  constructor(posX, posY, parent) {
+    super(10, 10, posX, posY, parent.rotation, "bomb.png");
+    this.bombCollider = new Collider(this, "circle", 2, [1, 3, 6])
+    this.colliding = false;
+    this.lastPosition = new Vector2(posX, posY);
+    this.parentPlayer = parent;
+    this.maxSpeed = 200;
+    this.rotationMatrix = [0, 0];
+    this.hits = 0;
+  }
+
+  spawnBulletsAround() {
+    for(let i = 0; i != 360; i+=45) {
+      this.rotation = i;
+      this.rotationMatrix = calcRotMatrix(this);
+      let bulletSpawn = getPositionFromPlayer(this, this, 20);
+      let newSmallBullet = new Bullet(8.5, 8.5, bulletSpawn.x, bulletSpawn.y, this.rotation);
+      newSmallBullet.spawn(this.parentPlayer);
+    }
+  }
+
+  move() {
+
+    if(this.hits >= 10) {
+      this.spawnBulletsAround();
+      this.bombCollider.delete();
+      this.delete();
+    }
+
+    globalPlayers.forEach(player => {
+      if(this.bombCollider.isColliding(player.collider)) {
+        this.hits = 10;
+      }
+    })
+
+    globalObjects.forEach(object => {
+      if(this.bombCollider.isColliding(object)) {
+        this.colliding = true;
+      }
+    })
+
+    this.rotationMatrix = calcRotMatrix(this);
+
+    this.velocity.x = this.maxSpeed * this.rotationMatrix[0];
+    this.velocity.y = this.maxSpeed * this.rotationMatrix[1];
+
+    if(!this.colliding) {
+      this.lastPosition.x = this.position.x;
+      this.lastPosition.y = this.position.y;
+      this.position.x += this.velocity.x * deltaTime;
+      this.position.y += this.velocity.y * deltaTime;
+    } else {
+      this.hits += 1;
+      this.position.x = this.lastPosition.x;
+      this.position.y = this.lastPosition.y;
+      if(this.rotation == 0) this.rotation = 180;
+      else this.rotation += this.rotation + randomIntMinMax(10, 25);
+      this.rotation = normalizeAngle(this.rotation);
+    }
+    this.colliding = false;
+  }
+
+  render() {
+    super.render(this.scale.width*2.2, this.scale.height*2.2, 1);
+  }
+
+  spawn() {
+    globalObjects.push(this);
+    activePowerUp[this.parentPlayer.playerID] = "none";
+    this.parentPlayer.bulletCode = 0;
+  }
+}
+
 
 export class Rocket extends Object {
   constructor(positionX, positionY, parent) {
     super(8.5, 8.5, positionX, positionY, parent.rotation, "rocketbullet.png");
     this.parentPlayer = parent;
-    this.collider = new Collider(this, "circle");
+    this.timeUntilSelfTarget = 15;
+    this.collider = new Collider(this, "circle", 9, [1, 2, 3, 6]);
     this.colliding = false;
     this.lastPosition = new Vector2(positionX, positionY);
+
+    this.timeAlive = 0;
+
     let distances = [];
     globalPlayers.forEach((player) => {
       if (player != parent) {
@@ -86,18 +178,48 @@ export class Rocket extends Object {
         distances.push(distance);
       }
     });
+
+
+    setTimeout(() => {
+      this.target = this.parentPlayer;
+    }, this.timeUntilSelfTarget * 1000);
+    
     this.target = globalPlayers[distances.indexOf(Math.min(...distances)) + 1];
     this.maxSpeed = 250;
     this.velocity = new Vector2(this.maxSpeed, this.maxSpeed);
+    console.log(this.target);
+    this.rocketSight = new Ray(
+      positionX,
+      positionY,
+      this.target.position.x,
+      this.target.position.y,
+      0);
+
     this.isTargetinSight = false;
+
+    //this.rocketSight.debugDraw = false;
+  }
+
+  delete() {
+    this.rocketSight.delete();
+    super.delete();
   }
 
   move() {
+    this.rocketSight.startPos.x = this.position.x;
+    this.rocketSight.startPos.y = this.position.y;
+    this.rocketSight.goalPosition.x = this.target.position.x;
+    this.rocketSight.goalPosition.y = this.target.position.y;
+
+    if(this.rocketSight.canReachGoal) {
+      this.isTargetinSight = true;
+    } else this.isTargetinSight = false;
+
     globalPlayers.forEach((player) => {
       if (this.collider.isColliding(player.collider)) {
         player.die();
         this.visible = false;
-        super.delete();
+        this.delete();
       }
     });
 
@@ -109,34 +231,17 @@ export class Rocket extends Object {
         } else if (object instanceof Bullet) {
           if (this.collider.isColliding(object.collider)) {
             this.visible = false;
-            super.delete();
+            this.delete();
           }
         } else if (this.collider.isColliding(object)) {
-          // RESET POSITION TO BEFORE COLLISION TO PREVENT JIGGLING
-          this.position.x = this.lastPosition.x;
-          this.position.y = this.lastPosition.y;
-
-          // ROTATE BULLET AND CALMP ROTATION IN BETWEEN 0 AND 360
-          if (this.rotation == 0) this.rotation = 180;
-          else this.rotation += this.rotation + randomIntMinMax(1, 5);
-          this.rotation = normalizeAngle(this.rotation);
-
           this.colliding = true;
-          return;
-        } else {
-          this.colliding = false;
         }
       }
     });
 
-    let Alpha = 0;
-    if (Math.abs(this.velocity.x) > 0)
-      Math.acos(this.velocity.x / this.velocity.lenght); //Math.acos(x / velocity.lenght)
-    let piradRotation = (this.rotation + Alpha) * (Math.PI / 180);
-    this.rotationMatrix = [
-      parseFloat(Math.cos(piradRotation).toFixed(4)),
-      parseFloat(Math.sin(piradRotation).toFixed(4)),
-    ];
+    if(this.isTargetinSight) this.rotation = this.rocketSight.angleToTarget;
+
+    this.rotationMatrix = calcRotMatrix(this);
 
     this.velocity.x = this.maxSpeed * this.rotationMatrix[0];
     this.velocity.y = this.maxSpeed * this.rotationMatrix[1];
@@ -146,11 +251,44 @@ export class Rocket extends Object {
       this.lastPosition.y = this.position.y;
       this.position.x += this.velocity.x * deltaTime;
       this.position.y += this.velocity.y * deltaTime;
+    } else {
+      // RESET POSITION TO BEFORE COLLISION TO PREVENT JIGGLING
+      this.position.x = this.lastPosition.x;
+      this.position.y = this.lastPosition.y;
+
+      // ROTATE BULLET AND CALMP ROTATION IN BETWEEN 0 AND 360
+      if (this.rotation == 0) this.rotation = 180;
+      else this.rotation += this.rotation + randomIntMinMax(1, 5);
+      this.rotation = normalizeAngle(this.rotation);
     }
+    this.colliding = false;
   }
 
   render() {
     super.render(this.scale.width * 2.5, this.scale.height * 1.5);
+    ctx.save();
+    this.timeAlive += deltaTime;
+    let radius = 0.5 * (10 + Math.sin(2 * Math.PI * this.timeAlive) * 10);
+    let opacity = 0.5 * (1 + Math.sin(2 * Math.PI * this.timeAlive));
+    if (this.freq <= 0) opacity = 1;
+    ctx.globalAlpha = opacity;
+    ctx.beginPath();
+    
+    switch(this.target.playerID) {
+      case 0:
+        ctx.fillStyle = "#FF0000";
+        break;
+      case 1:
+        ctx.fillStyle = "#00FF00";
+        break;
+      case 2:
+        ctx.fillStyle = "#0000FF";
+        break;
+    }
+    ctx.arc(this.position.x, this.position.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
   }
 
   spawnBullet() {
@@ -187,6 +325,7 @@ export class Shield extends Object {
 
   delete() {
     activePowerUp[this.parentPlayer.playerID] = "none";
+    this.shieldCollider.delete();
     super.delete();
   }
 
