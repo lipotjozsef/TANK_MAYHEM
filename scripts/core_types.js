@@ -306,7 +306,7 @@ export class Collider extends Object {
   }
 }
 
-export function cleanObject() {
+export function cleanObjects() {
   globalObjects.length = 0;
   mazeGenerator = new MazeGenerator(21, 17, canvas);
 }
