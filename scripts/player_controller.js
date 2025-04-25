@@ -1,8 +1,8 @@
 
 import { PowerUp } from "./powerup.js";
 import { mazeGenerator, globalObjects, Vector2, Object, Collider, Ray } from "./core_types.js";
-import { normalizeAngle, randomIntMinMax } from "./math_helper_utils.js";
-import { Shield, Rocket, Laser } from "./PlayerPowerUps.js"
+import { normalizeAngle, randomIntMinMax, calcRotMatrix, getPositionFromPlayer } from "./math_helper_utils.js";
+import { Shield, Rocket, Laser, Explosion } from "./PlayerPowerUps.js"
 
 const canvas = document.querySelector("canvas");
 export const ctx = canvas.getContext("2d");
@@ -13,6 +13,7 @@ const powerups = []
 const POWERUPHELPER = new PowerUp(canvas, 0, 0, 0, 0, 0, 0)
 
 export const activePowerUp = [];
+export const playersScore = [];
 
 var startTime = Date.now();
 export var deltaTime = 0;
@@ -22,7 +23,7 @@ var isEndOfRound = false;
 let playerKeybinds = [
     ["w", "s", "a", "d", " "],
     ["i", "k", "j", "l", "-"],
-    ["8", "2", "4", "6", "+"]
+    ["8", "5", "4", "6", "+"]
 ]
 
 export const globalPlayers = [];
@@ -35,11 +36,12 @@ export class Bullet extends Object {
         this.canKillParent = false;
         this.maxSpeed = 200;
         this.velocity = new Vector2(this.maxSpeed, this.maxSpeed);
-        this.collider = new Collider(this, "circle", 2, [1, 3, 6]);
+        this.collider = new Collider(this, "circle", 2, [1, 3, 6, 9]);
         this.lastPosition = new Vector2(this.position.x, this.position.y);
         this.colliding = false;
         this.rotationMatrix = [1, 0];
         this.deleted = false;
+        this.hits = 0;
     }
 
     delete() {
@@ -49,6 +51,12 @@ export class Bullet extends Object {
     }
 
     move() {
+
+        if(this.hits >= 50) {
+            this.visible = false;
+            this.delete();
+        }
+
         globalPlayers.forEach(player => {
             if(this.collider.isColliding(player.collider) && this.canKillParent) {
                 player.die();
@@ -59,41 +67,13 @@ export class Bullet extends Object {
 
         globalObjects.forEach(object => {
             if(object != this){
-                if(object == this.parentPlayer && !this.canKillParent) {
-                    this.colliding = false; 
-                    return;
-                }
-                else if(object instanceof Bullet) {
-                    if(this.collider.isColliding(object.collider)){
-                        this.colliding = false;
-                    }
-                }
-                else if(this.collider.isColliding(object)) {
-                    // RESET POSITION TO BEFORE COLLISION TO PREVENT JIGGLING
-                    this.position.x = this.lastPosition.x;
-                    this.position.y = this.lastPosition.y;
-
-                    // ROTATE BULLET AND CALMP ROTATION IN BETWEEN 0 AND 360
-                    if(this.rotation == 0) this.rotation = 180;
-                    else this.rotation += this.rotation + randomIntMinMax(10, 25);
-                    this.rotation = normalizeAngle(this.rotation);
-
+                if(this.collider.isColliding(object)) {
                     this.colliding = true;
-                    return;
-                }
-                else {
-                    this.colliding = false;
                 }
             } 
         })
 
-        let Alpha = 0;
-        if(Math.abs(this.velocity.x) > 0) Math.acos(this.velocity.x / this.velocity.lenght); //Math.acos(x / velocity.lenght)
-        let piradRotation = (this.rotation + Alpha) * (Math.PI/180);
-        this.rotationMatrix = [
-            parseFloat(Math.cos(piradRotation).toFixed(4)),
-            parseFloat(Math.sin(piradRotation).toFixed(4))
-        ]
+        this.rotationMatrix = calcRotMatrix(this);
 
         this.velocity.x = this.maxSpeed * this.rotationMatrix[0];
         this.velocity.y = this.maxSpeed * this.rotationMatrix[1];
@@ -104,7 +84,19 @@ export class Bullet extends Object {
             this.lastPosition.y = this.position.y;
             this.position.x += this.velocity.x * deltaTime;
             this.position.y += this.velocity.y * deltaTime;
+        } else {
+            this.hits += 1;
+            // RESET POSITION TO BEFORE COLLISION TO PREVENT JIGGLING
+            this.position.x = this.lastPosition.x;
+            this.position.y = this.lastPosition.y;
+
+            // ROTATE BULLET AND CALMP ROTATION IN BETWEEN 0 AND 360
+            if (this.rotation == 0) this.rotation = 180;
+            else this.rotation += this.rotation + randomIntMinMax(1, 5);
+            this.rotation = normalizeAngle(this.rotation);
+            
         }
+        this.colliding = false;
     }
 
     render() {
@@ -149,7 +141,7 @@ class Player extends Object {
         this.drag = 20;
         this.ismoving = false;
         this.rotationMatrix = [0, 1];
-        this.collider = new Collider(this, "rectangle", 1, [2, 3, 4, 5]);
+        this.collider = new Collider(this, "rectangle", 1, [1, 2, 3, 4, 5, 9]);
         this.isdead = false;
         this.bulletCode = 0;
         globalPlayers.push(this);
@@ -167,11 +159,11 @@ class Player extends Object {
 
     spawnBullet() {
         if(this.bulletCount == 5) return;
-        let bulletPosition = new Vector2(this.position.x+(35*this.rotationMatrix[0]), this.position.y+(35*this.rotationMatrix[1]));
+        let bulletPosition = getPositionFromPlayer(this, this, 35);
         
         switch(this.bulletCode) {
             case 0:
-                let newBullet = new Bullet(8.5, 8.5, bulletPosition.x, bulletPosition.y, this.rotation);
+                let newBullet = new Bullet(10, 10, bulletPosition.x, bulletPosition.y, this.rotation);
                 newBullet.spawn(this);
                 this.bulletCount += 1;
                 break;
@@ -185,6 +177,9 @@ class Player extends Object {
                 newLaser.spawn();
                 this.bulletCode = -1;
                 break;
+            case 3:
+                let newExplosive = new Explosion(bulletPosition.x, bulletPosition.y, this);
+                newExplosive.spawn();
         }
         
     }
@@ -200,6 +195,9 @@ class Player extends Object {
             case "laser":
                 if(this.bulletCode == -1) return;
                 this.bulletCode = 2;
+                break;
+            case "explosion":
+                this.bulletCode = 3;
                 break;
 
         }
@@ -246,13 +244,7 @@ class Player extends Object {
         this.rotation = normalizeAngle(this.rotation);
 
         if(!this.colliding) {
-            let Alpha = 0;
-            if(Math.abs(this.velocity.x) > 0) Math.acos(this.velocity.x / this.velocity.lenght); //Math.acos(x / velocity.lenght)
-            let piradRotation = (this.rotation + Alpha) * (Math.PI/180);
-            this.rotationMatrix = [
-                parseFloat(Math.cos(piradRotation).toFixed(4)),
-                parseFloat(Math.sin(piradRotation).toFixed(4))
-            ]
+            this.rotationMatrix = calcRotMatrix(this);
         }
         
         
@@ -357,7 +349,11 @@ export function start(players) {
         //console.log(newPlayer.position);
         document.addEventListener("keypress", (event) => {newPlayer.handleInput(event);})
         document.addEventListener("keyup", (event) => {newPlayer.notmoving(event);})
-        activePowerUp.push("none");
+        
+        if(playersScore.length != players && activePowerUp.length != players) {
+            playersScore.push(0);
+            activePowerUp.push("none");
+        }
     }
     
     const radius = 20;
@@ -376,29 +372,34 @@ export function start(players) {
     }
 
     //for(let i = 0; i < mazeGenerator.wallSpaces.length; i++) {
+    let lastwallpos = [];
     for(let i = 0; i < mazeGenerator.wallSpaces.length; i++) {
         let wall = mazeGenerator.wallSpaces[i];
         let width = wall[0]*(mazeGenerator.cellSize);
         let height = wall[1]*(mazeGenerator.cellSize);
-        let newWallObject = new Object((mazeGenerator.cellSize/1.5), (mazeGenerator.cellSize/1.5), width+mazeGenerator.cellSize/2, height+mazeGenerator.cellSize/2, 0);
+        let size = mazeGenerator.cellSize * 0.75;
+        let newWallObject = new Object(size, size, width+mazeGenerator.cellSize/2, height+mazeGenerator.cellSize/2, 0);
 
-        let _ = new Collider(newWallObject, "rectangle", 3, [1, 2, 5]);
+        let _ = new Collider(newWallObject, "rectangle", 3, [1, 2, 5, 9]);
+        lastwallpos = wall;
     }
 
     //console.log(activePowerUp);
 }
 
 let rightSpawn = false;
+let alreadyTakenSpaces = [];
 function getrandomSpawnPoint() {
     let spawnList = mazeGenerator.leftSpawnSpaces;
     if(rightSpawn) spawnList = mazeGenerator.rightSpawnSpaces;
     let randomIndex = randomIntMinMax(0, spawnList.length);;
-    while(spawnList[randomIndex] == undefined) {
+    while(spawnList[randomIndex] == undefined || alreadyTakenSpaces.includes(randomIndex)) {
         randomIndex = randomIntMinMax(0, spawnList.length);
     }
+    alreadyTakenSpaces.push(randomIndex);
     rightSpawn = !rightSpawn;
     let xPos = spawnList[randomIndex][0]*mazeGenerator.cellSize;
-    let yPos = spawnList[randomIndex][1]*mazeGenerator.cellSize
+    let yPos = spawnList[randomIndex][1]*mazeGenerator.cellSize;
     return [xPos+(mazeGenerator.cellSize>>1), yPos+(mazeGenerator.cellSize>>1)];
 }
 
