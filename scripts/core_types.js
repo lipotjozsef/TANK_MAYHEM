@@ -101,6 +101,7 @@ export class Ray extends Object {
     this.goalCheck = new Collider(goalObject, "circle", 5, [5]);
     this.gainLenght = false;
     this.rotationMatrix = [1, 0];
+    this.angleToTarget = 0;
     this.beforeLenght = 0;
     this.debugDraw = true;
     globalObjects.push(this);
@@ -132,6 +133,7 @@ export class Ray extends Object {
         this.goalPosition.y - this.position.y,
         this.goalPosition.x - this.position.x
       );
+      this.angleToTarget = piradRotation * 180;
       this.rotationMatrix = [
         parseFloat(Math.cos(piradRotation).toFixed(4)),
         parseFloat(Math.sin(piradRotation).toFixed(4)),
@@ -158,7 +160,7 @@ export class Ray extends Object {
   }
 
   render() {
-    if(!this.debugDraw) return;
+    if (!this.debugDraw) return;
     ctx.save();
     ctx.beginPath();
     ctx.strokeStyle = "#0000FF";
@@ -200,7 +202,7 @@ export class Collider extends Object {
     this.parent = parent;
     this.iscolliding = false;
     this.layer = layer; // What this collider is
-    this.mask = mask;   // What this collider interacts with
+    this.mask = mask; // What this collider interacts with
     globalObjects.push(this);
   }
 
