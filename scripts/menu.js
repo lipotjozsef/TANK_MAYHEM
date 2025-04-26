@@ -150,21 +150,24 @@ function drawCornerBox(x, y, size, color, imageKey, isRight) {
 
         ctx.drawImage(img, imageX, imageY, scaledSize, scaledSize);
 
-        const canvasContainer = canvas.parentElement;
-        let link = document.getElementById('github-link');
-        if (!link) {
-            link = document.createElement('a');
-            link.id = 'github-link';
-            link.href = 'https://github.com/lipotjozsef/TANK_MAYHEM';
-            link.target = '_blank';
-            link.style.position = 'absolute';
-            link.style.zIndex = 10;
-            canvasContainer.appendChild(link);
+        // Ensure the GitHub link is only created for the right corner box
+        if (isRight) {
+            const canvasContainer = canvas.parentElement;
+            let link = document.getElementById('github-link');
+            if (!link) {
+                link = document.createElement('a');
+                link.id = 'github-link';
+                link.href = 'https://github.com/lipotjozsef/TANK_MAYHEM';
+                link.target = '_blank';
+                link.style.position = 'absolute';
+                link.style.zIndex = 10;
+                canvasContainer.appendChild(link);
+            }
+            link.style.left = `${canvas.offsetLeft + imageX}px`;
+            link.style.top = `${canvas.offsetTop + imageY}px`;
+            link.style.width = `${scaledSize}px`;
+            link.style.height = `${scaledSize}px`;
         }
-        link.style.left = `${canvas.offsetLeft + imageX}px`;
-        link.style.top = `${canvas.offsetTop + imageY}px`;
-        link.style.width = `${scaledSize}px`;
-        link.style.height = `${scaledSize}px`;
     }
 }
 
@@ -528,7 +531,7 @@ canvas.addEventListener('click', (event) => {
         mouseY >= leftBoxArea.y &&
         mouseY <= leftBoxArea.y + leftBoxArea.size
     ) {
-        isLeftBoxToggled = !isLeftBoxToggled;
+        isLeftBoxToggled = !isLeftBoxToggled; // Toggle the state
         drawLeftCornerBox(
             leftBoxArea.x,
             leftBoxArea.y,
@@ -537,13 +540,9 @@ canvas.addEventListener('click', (event) => {
             isLeftBoxToggled ? 'mute' : 'volume'
         );
 
-        if (isLeftBoxToggled) {
-            lobbyMusic.muted = true;
-            console.log("Sound currently muted");
-        } else {
-            lobbyMusic.muted = false;
-            console.log("Sound currently on");
-        }
+        // Properly toggle the mute state of the lobby music
+        lobbyMusic.muted = isLeftBoxToggled;
+        console.log(isLeftBoxToggled ? "Sound currently muted" : "Sound currently on");
         return;
     }
 

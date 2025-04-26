@@ -6,7 +6,7 @@ import { Shield, Rocket, Laser, Explosion } from "./PlayerPowerUps.js"
 const canvas = document.querySelector("canvas");
 export const ctx = canvas.getContext("2d");
 
-export var scoreToWin = 2;
+export var scoreToWin = 5; // Default points to reach is 5
 let playersStart = -1;
 
 const powerups = []
