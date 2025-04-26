@@ -1,4 +1,3 @@
-
 import { PowerUp } from "./powerup.js";
 import { mazeGenerator, globalObjects, cleanObjects, Vector2, Object, Collider } from "./core_types.js";
 import { normalizeAngle, randomIntMinMax, calcRotMatrix, getPositionFromPlayer } from "./math_helper_utils.js";
@@ -7,7 +6,7 @@ import { Shield, Rocket, Laser, Explosion } from "./PlayerPowerUps.js"
 const canvas = document.querySelector("canvas");
 export const ctx = canvas.getContext("2d");
 
-var scoreToWin = 2;
+export var scoreToWin = 2;
 let playersStart = -1;
 
 const powerups = []

@@ -1,4 +1,4 @@
-import { start, mainLoop, activePowerUp, winner, playersScore, setScoreToWin } from "./player_controller.js";
+import { start, mainLoop, activePowerUp, winner, playersScore, setScoreToWin, scoreToWin } from "./player_controller.js";
 const canvas = document.getElementById('game_canvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 1080;
@@ -429,6 +429,33 @@ function showBottomMenu() {
     bottomMenu.classList.add('visible'); // Add the "visible" class to trigger animation
 }
 
+function updateTopMenu() {
+    const pointsContainer = document.getElementById("points-container");
+    const pointsToReachValue = document.getElementById("points-to-reach-value");
+
+    // Update player points
+    pointsContainer.innerHTML = "";
+    playersScore.forEach((score, index) => {
+        const playerDiv = document.createElement("div");
+        playerDiv.className = "player-points";
+        playerDiv.style.backgroundColor = ["red", "green", "blue"][index];
+        playerDiv.textContent = score;
+        pointsContainer.appendChild(playerDiv);
+    });
+
+    // Update points to reach
+    pointsToReachValue.textContent = scoreToWin;
+}
+
+function showTopMenu() {
+    const topMenu = document.getElementById("topmenu");
+    topMenu.classList.add("visible");
+    updateTopMenu();
+}
+
+// Call `updateTopMenu` whenever scores change
+setInterval(updateTopMenu, 100);
+
 canvas.addEventListener('click', (event) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -456,6 +483,7 @@ canvas.addEventListener('click', (event) => {
         setTimeout(() => {
             hideMenu = true;
             showMenus(); // Show the left and right menus with animation
+            showTopMenu(); // Show the top menu when the game starts
             if (playercount === 3) {
                 showBottomMenu(); // Show the bottom menu if playercount is 3
             }
@@ -831,7 +859,6 @@ function updatePowerUpAnimations() {
 
 const activePowerUpAnimations = Array(activePowerUp.length).fill("none");
 setInterval(updatePowerUpAnimations, 100);
-
 
 
 
