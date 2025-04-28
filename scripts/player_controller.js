@@ -411,26 +411,82 @@ function getrandomSpawnPoint() {
 
 export let winner = null;
 
+let winnerTextTimeout = null;
+
+function displayWinnerText(playerID) {
+    const colors = ["red", "green", "blue"];
+    const winnerText = document.createElement("div");
+    winnerText.id = "winner-text";
+    winnerText.style.position = "absolute";
+    winnerText.style.top = "50%";
+    winnerText.style.left = "50%";
+    winnerText.style.transform = "translate(-50%, -50%)";
+    winnerText.style.fontSize = "80px";
+    winnerText.style.fontWeight = "bold";
+    winnerText.style.color = colors[playerID];
+    winnerText.style.textAlign = "center";
+    winnerText.style.zIndex = "1000";
+    winnerText.textContent = `Player ${playerID + 1} Wins!`;
+
+    document.body.appendChild(winnerText);
+
+    if (winnerTextTimeout) clearTimeout(winnerTextTimeout);
+    winnerTextTimeout = setTimeout(() => {
+        document.body.removeChild(winnerText);
+    }, 3000);
+}
+
+function displayFinalWinnerText(playerID) {
+    const colors = ["red", "green", "blue"];
+    const finalWinnerText = document.createElement("div");
+    finalWinnerText.id = "final-winner-text";
+    finalWinnerText.style.position = "absolute";
+    finalWinnerText.style.top = "50%";
+    finalWinnerText.style.left = "50%";
+    finalWinnerText.style.transform = "translate(-50%, -50%)";
+    finalWinnerText.style.fontSize = "100px";
+    finalWinnerText.style.fontWeight = "bold";
+    finalWinnerText.style.color = colors[playerID];
+    finalWinnerText.style.textAlign = "center";
+    finalWinnerText.style.zIndex = "1000";
+    finalWinnerText.textContent = `Player ${playerID + 1} Wins the Game!`;
+
+    document.body.appendChild(finalWinnerText);
+
+    setTimeout(() => {
+        document.body.removeChild(finalWinnerText);
+        location.reload(); 
+    }, 5000);
+}
+
 function endOfRound() {
-    
     globalPlayers.forEach(player => {
-        if(!player.isdead) {
+        if (!player.isdead) {
             winner = player;
         }
-    })
+    });
 
-    if(winner == null) console.log("Nobody won this round!");
-    else {
+    if (winner == null) {
+        console.log("Nobody won this round!");
+    } else {
         playersScore[winner.playerID] += 1;
         let winnerScore = playersScore[winner.playerID];
-        console.log(`Player ${winner.playerID+1} won this round! Current score: ${winnerScore} pts`)
-        if(winnerScore >= scoreToWin) {
-            console.log(`${winner.playerID+1} won the whole match!\nReturning to the main page.`)
-            location.reload();
+        console.log(`Player ${winner.playerID + 1} won this round! Current score: ${winnerScore} pts`);
+
+        if (winnerScore >= scoreToWin) {
+            console.log(`${winner.playerID + 1} won the whole match!\nReturning to the main page.`);
+            displayFinalWinnerText(winner.playerID); 
+            return; 
         }
+
+        displayWinnerText(winner.playerID); 
     }
     newRound();
+}
 
+
+if (scoreToWin === 2) {
+    scoreToWin = 5;
 }
 
 function newRound() {

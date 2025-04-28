@@ -236,3 +236,16 @@ body{
 #controls li {
     margin: 5px 0;
 }
+
+#winner-text {
+    animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+}

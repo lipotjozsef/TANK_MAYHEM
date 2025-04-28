@@ -417,6 +417,10 @@ function drawEndGameOptions(yPosition = canvas.height / 2 + 160) {
 setOnNumberChange((newNumber) => {
     setScoreToWin(newNumber);
     console.log(`Selected number changed to: ${newNumber}`);
+    const pointsToReachValue = document.getElementById("points-to-reach-value");
+    if (pointsToReachValue) {
+        pointsToReachValue.textContent = newNumber;
+    }
 });
 
 function showMenus() {
