@@ -47,6 +47,7 @@ export class Bullet extends Object {
     delete() {
         this.parentPlayer.bulletCount -= 1;
         this.deleted = true;
+        this.collider.delete();
         super.delete();
     }
 
@@ -150,6 +151,7 @@ class Player extends Object {
         this.playerID = globalPlayers.indexOf(this);
         this.keybinds = playerKeybinds[this.playerID];
         this.spriteImage.src = `./assets/tank${this.playerID}.png`;
+        this.canDie = true;
     }
 
     render() {
@@ -187,7 +189,8 @@ class Player extends Object {
     usePowerUp(type) {
         switch(type) {
             case "shield":
-                let ShieldPowerUp = new Shield(22, 22, this);
+                let ShieldPowerUp = new Shield(25, 25, this);
+                this.canDie = false;
                 break;
             case "rocket":
                 this.bulletCode = 1;
@@ -301,6 +304,7 @@ class Player extends Object {
     }
 
     die() {
+        if(!this.canDie) return;
         this.isdead = true;
         alivePlayersCount -= 1;
         globalObjects.splice(globalObjects.indexOf(this.collider), 1);
@@ -332,6 +336,7 @@ class PowerUpCollision extends Collider {
                 let type = this.powerup.disspawnPowerUp();
                 activePowerUp[player.playerID] = this.powerup.type;
                 player.usePowerUp(type);
+                this.collider.delete();
                 super.delete();
             }
         })
