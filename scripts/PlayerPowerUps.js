@@ -161,11 +161,12 @@ export class Rocket extends Object {
   constructor(positionX, positionY, parent) {
     super(8.5, 8.5, positionX, positionY, parent.rotation, "rocketbullet.png");
     this.parentPlayer = parent;
+    this.timeUntilExplosion = 30;
     this.timeUntilSelfTarget = 15;
     this.collider = new Collider(this, "circle", 9, [1, 2, 3, 6]);
     this.colliding = false;
     this.lastPosition = new Vector2(positionX, positionY);
-
+    this.deleted = false;
     this.timeAlive = 0;
 
     let distances = [];
@@ -176,15 +177,20 @@ export class Rocket extends Object {
             (player.position.y - this.position.y) ** 2
         );
         distances.push(distance);
+      } else {
+        distances.push(2000);
       }
     });
-
-
     setTimeout(() => {
       this.target = this.parentPlayer;
+      this.isTargetinSight = false;
     }, this.timeUntilSelfTarget * 1000);
-    
-    this.target = globalPlayers[distances.indexOf(Math.min(...distances)) + 1];
+
+    setTimeout(()=> {
+      this.delete();
+    }, this.timeUntilExplosion * 1000)
+
+    this.target = globalPlayers[distances.indexOf(Math.min(...distances))];
     this.maxSpeed = 250;
     this.velocity = new Vector2(this.maxSpeed, this.maxSpeed);
     console.log(this.target);
@@ -197,10 +203,13 @@ export class Rocket extends Object {
 
     this.isTargetinSight = false;
 
-    //this.rocketSight.debugDraw = false;
+    this.rocketSight.debugDraw = false;
   }
 
   delete() {
+    if(this.deleted) return;
+    this.deleted = true;
+    this.collider.delete();
     this.rocketSight.delete();
     super.delete();
   }
@@ -213,7 +222,7 @@ export class Rocket extends Object {
 
     if(this.rocketSight.canReachGoal) {
       this.isTargetinSight = true;
-    } else this.isTargetinSight = false;
+    }
 
     globalPlayers.forEach((player) => {
       if (this.collider.isColliding(player.collider)) {
@@ -228,7 +237,7 @@ export class Rocket extends Object {
         if (object == this.parentPlayer) {
           this.colliding = false;
           return;
-        } else if (object instanceof Bullet) {
+        } else if (object instanceof Bullet || object instanceof Shield) {
           if (this.collider.isColliding(object.collider)) {
             this.visible = false;
             this.delete();
@@ -238,8 +247,6 @@ export class Rocket extends Object {
         }
       }
     });
-
-    if(this.isTargetinSight) this.rotation = this.rocketSight.angleToTarget;
 
     this.rotationMatrix = calcRotMatrix(this);
 
@@ -257,10 +264,14 @@ export class Rocket extends Object {
       this.position.y = this.lastPosition.y;
 
       // ROTATE BULLET AND CALMP ROTATION IN BETWEEN 0 AND 360
-      if (this.rotation == 0) this.rotation = 180;
-      else this.rotation += this.rotation + randomIntMinMax(1, 5);
+      if(!this.isTargetinSight) {
+        if (this.rotation == 0) this.rotation = 180;
+        else this.rotation += this.rotation + randomIntMinMax(1, 5);
+      }
       this.rotation = normalizeAngle(this.rotation);
+      
     }
+    if(this.isTargetinSight) this.rotation = this.rocketSight.angleToTarget;
     this.colliding = false;
   }
 
@@ -311,7 +322,7 @@ export class Shield extends Object {
     this.parentPlayer = parent;
     this.duration = 15;
     this.freq = -1 * (this.duration - 5);
-    this.shieldCollider = new Collider(this, "circle", 6, [2, 5]);
+    this.collider = new Collider(this, "circle", 6, [2, 5, 9]);
     this.timeAlive = 0;
     globalObjects.push(this);
     setInterval(() => {
@@ -325,8 +336,9 @@ export class Shield extends Object {
 
   delete() {
     activePowerUp[this.parentPlayer.playerID] = "none";
-    this.shieldCollider.delete();
+    this.collider.delete();
     super.delete();
+    this.parentPlayer.canDie = true;
   }
 
   move() {
