@@ -83,8 +83,6 @@ export class Object {
   }
 
   delete() {
-    if (this.collider != undefined)
-      globalObjects.splice(globalObjects.indexOf(this.collider), 1);
     globalObjects.splice(globalObjects.indexOf(this), 1);
   }
 }
@@ -98,7 +96,7 @@ export class Ray extends Object {
     this.lenght = 0;
     this.checkRadius = new Collider(this, "circle", 5, [1, 3, 5, 6]);
     let goalObject = new Object(10, 10, goalX, goalY, 0);
-    this.goalCheck = new Collider(goalObject, "circle", 5, [5]);
+    this.goalCheck = new Collider(goalObject, "circle", 5, [5, 6]);
     this.gainLenght = false;
     this.rotationMatrix = [1, 0];
     this.angleToTarget = 0;
@@ -127,6 +125,8 @@ export class Ray extends Object {
   move() {
     this.position.x = this.startPos.x;
     this.position.y = this.startPos.y;
+    this.goalCheck.position.x = this.goalPosition.x;
+    this.goalCheck.position.y = this.goalPosition.y;
     this.lenght = 0;
     for (let i = 0; i < 100; i++) {
       let piradRotation = Math.atan2(
@@ -271,9 +271,9 @@ export class Collider extends Object {
     this.rotation = this.parent.rotation;
     this.scale = this.parent.scale;
 
-    /*
+    
     ctx.save();
-
+    /*
     if (!this.iscolliding) ctx.strokeStyle = "#00FF00";
     else ctx.strokeStyle = "#FF0000";
 
