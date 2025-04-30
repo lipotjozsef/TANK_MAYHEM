@@ -4,18 +4,18 @@ const ctx = canvas.getContext('2d');
 canvas.width = 1080;
 canvas.height = 720;
 const logoSrc = 'assets/tankmayhem_logo2.png';
-let lobbyMusic = new Audio('assets/lobby_music.mp3'); // Replace with your lobby music file path
+let lobbyMusic = new Audio('assets/lobby_music.mp3'); 
 
-const hoverSound2P = new Audio('assets/two_players.m4a'); // Replace with your 2P sound file path
-const hoverSound3P = new Audio('assets/three_players.m4a'); // Replace with your 3P sound file path
+const hoverSound2P = new Audio('assets/two_players.m4a'); 
+const hoverSound3P = new Audio('assets/three_players.m4a'); 
 
 //Képek/assetek forrásai
 const imageSources = {
     logo: 'assets/tankmayhem_logo2.png',
-    volume: 'assets/volume.png', // Updated to GitHub logo
-    mute: 'assets/mute.png',  // Updated to GitHub logo
-    pause: 'assets/github-logo.png', // Updated to GitHub logo
-    play: 'assets/github-logo.png',  // Updated to GitHub logo
+    volume: 'assets/volume.png', 
+    mute: 'assets/mute.png',  
+    pause: 'assets/github-logo.png', 
+    play: 'assets/github-logo.png',  
     controller: 'assets/controller.png',
 };
 
@@ -150,7 +150,6 @@ function drawCornerBox(x, y, size, color, imageKey, isRight) {
 
         ctx.drawImage(img, imageX, imageY, scaledSize, scaledSize);
 
-        // Ensure the GitHub link is only created for the right corner box
         if (isRight) {
             const canvasContainer = canvas.parentElement;
             let link = document.getElementById('github-link');
@@ -254,7 +253,7 @@ function drawSideButtons(text) {
     ctx.closePath();
     ctx.fill();
 
-    const startButtonImage = images.controller; // Use preloaded image
+    const startButtonImage = images.controller;
     if (startButtonImage) {
         const imageSize = startButtonSize * 0.8;
         ctx.drawImage(
@@ -356,7 +355,7 @@ function handleEndGameClick(event) {
     ) {
         if (selectedNumber > 1) {
             selectedNumber--;
-            drawEndGameOptions(); // Redraw the options
+            drawEndGameOptions(); 
             if (onNumberChange) onNumberChange(selectedNumber);
         }
     }
@@ -369,7 +368,7 @@ function handleEndGameClick(event) {
     ) {
         if (selectedNumber < 10) {
             selectedNumber++;
-            drawEndGameOptions(); // Redraw the options
+            drawEndGameOptions(); 
             if (onNumberChange) onNumberChange(selectedNumber);
         }
     }
@@ -383,16 +382,15 @@ let endScoreMenuY = canvas.height / 2 + 160;
 
 function drawEndGameOptions(yPosition = canvas.height / 2 + 160) {
     const x = (canvas.width - buttonWidth) / 2;
-    const y = yPosition; // Use the passed Y position
+    const y = yPosition; 
 
     drawButton(x, y, buttonWidth, buttonHeight, 'End Score');
     drawButton(x + 25, y + 60, buttonWidth - 50, buttonHeight, selectedNumber.toString());
 
-    const arrowWidth = 50; // Increased from 40
-    const arrowHeight = 40; // Increased from 20
+    const arrowWidth = 50; 
+    const arrowHeight = 40;
     const spacing = 10;
 
-    // Calculate arrow areas
     leftArrowArea = {
         x: x - arrowWidth - spacing + 20,
         y: y + buttonHeight / 2 + 60 - arrowHeight / 2,
@@ -410,8 +408,8 @@ function drawEndGameOptions(yPosition = canvas.height / 2 + 160) {
     drawArrow(leftArrowArea.x, leftArrowArea.y + arrowHeight / 2, arrowWidth, arrowHeight, 'left');
     drawArrow(rightArrowArea.x, rightArrowArea.y + arrowHeight / 2, arrowWidth, arrowHeight, 'right');
 
-    canvas.removeEventListener('click', handleEndGameClick); // Remove any existing listener
-    canvas.addEventListener('click', handleEndGameClick); // Add the listener
+    canvas.removeEventListener('click', handleEndGameClick); 
+    canvas.addEventListener('click', handleEndGameClick); 
 }
 
 setOnNumberChange((newNumber) => {
@@ -427,13 +425,13 @@ function showMenus() {
     const leftMenu = document.getElementById('leftmenu');
     const rightMenu = document.getElementById('rightmenu');
 
-    leftMenu.classList.add('visible'); // Add the "visible" class to trigger animation
+    leftMenu.classList.add('visible'); 
     rightMenu.classList.add('visible');
 }
 
 function showBottomMenu() {
     const bottomMenu = document.getElementById('bottommenu');
-    bottomMenu.classList.add('visible'); // Add the "visible" class to trigger animation
+    bottomMenu.classList.add('visible'); 
 }
 
 function updateTopMenu() {
@@ -450,7 +448,6 @@ function updateTopMenu() {
         pointsContainer.appendChild(playerDiv);
     });
 
-    // Update points to reach
     pointsToReachValue.textContent = scoreToWin;
 }
 
@@ -460,7 +457,6 @@ function showTopMenu() {
     updateTopMenu();
 }
 
-// Call `updateTopMenu` whenever scores change
 setInterval(updateTopMenu, 100);
 
 canvas.addEventListener('click', (event) => {
@@ -478,10 +474,10 @@ canvas.addEventListener('click', (event) => {
     if (distance <= startButtonSize / 2) {
         if (isStartButtonPressed) {
             console.log("Start button already pressed");
-            return; // Ignore further presses
+            return; 
         }
 
-        isStartButtonPressed = true; // Set the flag to true
+        isStartButtonPressed = true; 
         console.log("Start Game button pressed");
 
         initializeAnimationVariables();
@@ -489,10 +485,10 @@ canvas.addEventListener('click', (event) => {
         animate();
         setTimeout(() => {
             hideMenu = true;
-            showMenus(); // Show the left and right menus with animation
-            showTopMenu(); // Show the top menu when the game starts
+            showMenus(); 
+            showTopMenu(); 
             if (playercount === 3) {
-                showBottomMenu(); // Show the bottom menu if playercount is 3
+                showBottomMenu(); 
             }
             start(playercount);
             mainLoop();
@@ -535,7 +531,7 @@ canvas.addEventListener('click', (event) => {
         mouseY >= leftBoxArea.y &&
         mouseY <= leftBoxArea.y + leftBoxArea.size
     ) {
-        isLeftBoxToggled = !isLeftBoxToggled; // Toggle the state
+        isLeftBoxToggled = !isLeftBoxToggled; 
         drawLeftCornerBox(
             leftBoxArea.x,
             leftBoxArea.y,
@@ -544,7 +540,6 @@ canvas.addEventListener('click', (event) => {
             isLeftBoxToggled ? 'mute' : 'volume'
         );
 
-        // Properly toggle the mute state of the lobby music
         lobbyMusic.muted = isLeftBoxToggled;
         console.log(isLeftBoxToggled ? "Sound currently muted" : "Sound currently on");
         return;
@@ -575,15 +570,14 @@ canvas.addEventListener('click', (event) => {
     }
 });
 
-let isHovering2P = false; // Track hover state for 2P button
-let isHovering3P = false; // Track hover state for 3P button
+let isHovering2P = false; 
+let isHovering3P = false; 
 
 canvas.addEventListener('mousemove', (event) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
 
-    // Check if mouse is over the 2P button
     if (
         onePButtonArea &&
         mouseX >= onePButtonArea.x &&
@@ -592,15 +586,14 @@ canvas.addEventListener('mousemove', (event) => {
         mouseY <= onePButtonArea.y + onePButtonArea.height
     ) {
         if (!isHovering2P) {
-            hoverSound2P.currentTime = 0; // Reset sound to the beginning
+            hoverSound2P.currentTime = 0; 
             hoverSound2P.play();
             isHovering2P = true;
         }
     } else {
-        isHovering2P = false; // Reset hover state when mouse leaves
+        isHovering2P = false; 
     }
 
-    // Check if mouse is over the 3P button
     if (
         twoPButtonArea &&
         mouseX >= twoPButtonArea.x &&
@@ -609,12 +602,12 @@ canvas.addEventListener('mousemove', (event) => {
         mouseY <= twoPButtonArea.y + twoPButtonArea.height
     ) {
         if (!isHovering3P) {
-            hoverSound3P.currentTime = 0; // Reset sound to the beginning
+            hoverSound3P.currentTime = 0; 
             hoverSound3P.play();
             isHovering3P = true;
         }
     } else {
-        isHovering3P = false; // Reset hover state when mouse leaves
+        isHovering3P = false; 
     }
 });
 
@@ -826,7 +819,7 @@ function lightUpPowerUpBackground(playerID, powerUpType) {
     const imageElement = document.getElementById(imageId);
     if (imageElement) {
         imageElement.style.backgroundColor = "white";
-        imageElement.style.borderRadius = "10px"; // Optional: Add rounded corners
+        imageElement.style.borderRadius = "10px"; 
     }
 }
 
